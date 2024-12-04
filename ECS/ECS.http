@@ -1,0 +1,6 @@
+@ECS_HostAddress = http://localhost:5180
+
+GET {{ECS_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
