@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ECS.Areas.Admin.Models;
+using ECS.Areas.Authen.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECS
 {
@@ -10,5 +12,9 @@ namespace ECS
         {
             base.OnModelCreating(modelBuilder);
         }
+
+        public DbSet<Role> roles { get; set; }
+        public DbSet<Employee> employees { get; set; }
+        public DbSet<Departments>  departments { get; set; }
     }
 }
