@@ -57,6 +57,17 @@ namespace ECS.Areas.Authen.Controllers
             var role = await _roleRepository.GetRoleById(employee.RoleId);
             var roleName = role.RoleName;
             var token = _authenticationRepository.GenerateJwtToken(employee, roleName);
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                Path = "/",
+                HttpOnly = false,
+                SameSite = SameSiteMode.None,
+                Secure = true
+            };
+
+            Response.Cookies.Append("token", token, cookieOptions);
+
             return Ok(new
             {
                 UserName = employee.FirstName,
