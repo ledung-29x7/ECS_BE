@@ -29,6 +29,18 @@ builder.Services.AddAutoMapper(typeof(AuthenticationProfile));
 builder.Services.AddAutoMapper(typeof(DepartmentProfile));
 builder.Services.AddAutoMapper(typeof(RoleProfile));
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowCredentials()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 
 
 //JWT
@@ -73,7 +85,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors("AllowSpecificOrigin");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
