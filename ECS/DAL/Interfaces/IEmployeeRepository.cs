@@ -10,5 +10,8 @@ namespace ECS.DAL.Interfaces
         Task UpdateEmployee(Employee employee);
         Task UpdateEmployeeRole(Guid EmployeeId, int RoleId);
         Task UpdateDepartmentForEmployee(Guid EmployeeId, int departmentsId);
+        Task DeleteEmployeeAndUnsetManager(Guid EmployeeId);
+        
+        Task<List<Employee>> GetAllEmployee();
     }
 }

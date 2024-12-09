@@ -12,7 +12,7 @@ namespace ECS.Areas.Authen.Models
         private int roleId;
         private int? departmentID;
         private string password;
-        private DateTime? createAt;
+        private DateTime? createdAt;
 
         [Key]
         public Guid EmployeeId { get => employeeId; set => employeeId = value; }
@@ -22,7 +22,7 @@ namespace ECS.Areas.Authen.Models
         public string? PhoneNumber { get => phoneNumber; set => phoneNumber = value; }
         public int RoleId { get => roleId; set => roleId = value; }
         public string Password { get => password; set => password = value; }
-        public DateTime? CreateAt { get => createAt; set => createAt = value; }
         public int? DepartmentID { get => departmentID; set => departmentID = value; }
+        public DateTime? CreatedAt { get => createdAt; set => createdAt = value; }
     }
 }

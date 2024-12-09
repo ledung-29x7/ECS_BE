@@ -60,5 +60,16 @@ namespace ECS.DAL.Repositorys
             var departmentsId_Param = new SqlParameter("@DepartmentsId", departmentsId);
             await _context.Database.ExecuteSqlRawAsync("EXECUTE dbo.UpdateDepartmentForEmployee @EmployeeId, @DepartmentsId", EmployeeId_Param, departmentsId_Param);
         }
+
+        public async Task DeleteEmployeeAndUnsetManager(Guid EmployeeId)
+        {
+            var EmployeeId_Param = new SqlParameter("@EmployeeId", EmployeeId);
+            await _context.Database.ExecuteSqlRawAsync("EXECUTE dbo.DeleteEmployeeAndUnsetManager @EmployeeId", EmployeeId_Param);
+        }
+
+        public async Task<List<Employee>> GetAllEmployee()
+        {
+            return await Task.FromResult(_context.employees.FromSqlRaw("EXECUTE dbo.GetAllEmployee").ToList());
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ECS.Areas.Admin.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ECS.Areas.Admin.Models
 {
     public class Client
     {
@@ -9,8 +11,9 @@
      private string phoneNumber;
      private string address;
      private string password;
-     private DateTime? createAt;
+     private DateTime? createdAt;
 
+        [Key]
         public Guid ClientId { get => clientId; set => clientId = value; }
         public string ClientName { get => clientName; set => clientName = value; }
         public string ContactPerson { get => contactPerson; set => contactPerson = value; }
@@ -18,6 +21,6 @@
         public string PhoneNumber { get => phoneNumber; set => phoneNumber = value; }
         public string Address { get => address; set => address = value; }
         public string Password { get => password; set => password = value; }
-        public DateTime? CreateAt { get => createAt; set => createAt = value; }
+        public DateTime? CreatedAt { get => createdAt; set => createdAt = value; }
     }
 }
