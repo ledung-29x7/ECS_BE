@@ -3,6 +3,8 @@ using ECS.Areas.Authen.Models;
 using ECS.Areas.Units.Models;
 using ECS.Areas.Client.Models;
 using Microsoft.EntityFrameworkCore;
+using ECS.Areas.EmployeeService.Models;
+using ECS.Areas.EmployeeService.Controllers;
 
 namespace ECS
 {
@@ -22,5 +24,6 @@ namespace ECS
         public DbSet<Client> clients { get; set; }
         public DbSet<Service> services { get; set; }
         public DbSet<Product> product { get; set; }
+        public DbSet<CallHistory> callHistories {get; set;} 
     }
 }

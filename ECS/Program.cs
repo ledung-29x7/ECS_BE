@@ -26,6 +26,7 @@ builder.Services.AddScoped<ITokenBlacklistRepository,RedisTokenBlacklistReposito
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<ICallHistoryRepository, CallHistoryRepository>();
 
 
 builder.Services.AddScoped<IProductReponsitory , ProductReponsitory>();
