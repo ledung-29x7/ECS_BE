@@ -25,6 +25,8 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<ITokenBlacklistRepository,RedisTokenBlacklistRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+
 
 
 builder.Services.AddAutoMapper(typeof(AuthenticationProfile));

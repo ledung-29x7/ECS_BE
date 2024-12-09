@@ -19,5 +19,6 @@ namespace ECS
         public DbSet<Departments>  departments { get; set; }
         public DbSet<ImageTable> imageTables { get; set; }
         public DbSet<Client> clients { get; set; }
+        public DbSet<Service> services { get; set; }
     }
 }
