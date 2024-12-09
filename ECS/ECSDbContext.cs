@@ -1,5 +1,6 @@
 ﻿using ECS.Areas.Admin.Models;
 using ECS.Areas.Authen.Models;
+using ECS.Areas.Client.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECS
@@ -16,5 +17,7 @@ namespace ECS
         public DbSet<Role> roles { get; set; }
         public DbSet<Employee> employees { get; set; }
         public DbSet<Departments>  departments { get; set; }
+        public DbSet<Client> client {  get; set; }
+        public DbSet<Product> product { get; set; }
     }
 }

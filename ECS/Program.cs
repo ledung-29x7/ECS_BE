@@ -23,7 +23,7 @@ builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<ITokenBlacklistRepository,RedisTokenBlacklistRepository>();
-
+builder.Services.AddScoped<IProductReponsitory , ProductReponsitory>();
 
 builder.Services.AddAutoMapper(typeof(AuthenticationProfile));
 builder.Services.AddAutoMapper(typeof(DepartmentProfile));
