@@ -1,6 +1,7 @@
 ﻿using ECS.Areas.Admin.Models;
 using ECS.Areas.Authen.Models;
 using ECS.Areas.Client.Models;
+using ECS.Areas.EmployeeService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECS
@@ -22,5 +23,8 @@ namespace ECS
         public DbSet<Client> client {  get; set; }
         public DbSet<Product> product { get; set; }
         public DbSet <ProductCategory> ProductCategory { get; set; }
+        public DbSet<CallHistory> callHistory { get; set; }
+        public DbSet<Order> order { get; set; }
+        public DbSet<OrderDetail> orderDetails { get; set; }
     }
 }

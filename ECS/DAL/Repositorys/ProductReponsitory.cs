@@ -14,6 +14,24 @@ namespace ECS.DAL.Repositorys
         {
             this.eCSDbContext = eCSDbContext;
         }
+        public async Task UpdateProductActivation(Guid productId, bool isActive)
+        {
+            try
+            {
+                var productIdParam = new SqlParameter("@ProductId", productId);
+                var isActiveParam = new SqlParameter("@IsActive", isActive);
+
+                await eCSDbContext.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.UpdateProductActivation @ProductId, @IsActive",
+                    productIdParam,
+                    isActiveParam
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error updating product activation status: " + ex.Message, ex);
+            }
+        }
         public async Task<List<Product>> GetAllProduct()
         {
      

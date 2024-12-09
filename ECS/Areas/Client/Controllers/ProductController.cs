@@ -93,5 +93,21 @@ namespace ECS.Areas.Client.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        /// api kích hoạt sản phẩm 
+        [HttpPatch("{id}/activate")]
+        public async Task<IActionResult> UpdateActivationStatus(Guid id, [FromQuery] bool isActive)
+        {
+            try
+            {
+                await productReponsitory.UpdateProductActivation(id, isActive);
+                return Ok($"Product with ID {id} activation status set to {isActive}.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 }
