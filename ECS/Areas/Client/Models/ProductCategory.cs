@@ -1,7 +1,10 @@
-﻿namespace ECS.Areas.Client.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ECS.Areas.Client.Models
 {
     public class ProductCategory
     {
+        [Key]
         private int categoryId;
         private string categoryName;
 

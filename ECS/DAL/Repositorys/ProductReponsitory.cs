@@ -22,6 +22,21 @@ namespace ECS.DAL.Repositorys
                     .ToListAsync();
     
         }
+        public async Task DeleteProduct(Guid id)
+        {
+            var productid_param = new SqlParameter("@ProductId", id);
+           await eCSDbContext.Database.ExecuteSqlRawAsync("EXEC GetProductById @ProductId" , productid_param); 
+        }
+        public async Task<Product> GetProductbyID(Guid id)
+        {
+
+            var product = await eCSDbContext.product
+                .FromSqlRaw("EXEC GetProductById @ProductId", new SqlParameter("@ProductId", id))
+                .ToListAsync();
+            return product.FirstOrDefault();
+            
+        }
+
 
         public async Task AddProduct(Product product)
         {
@@ -52,6 +67,39 @@ namespace ECS.DAL.Repositorys
             {
                
                 throw new Exception("Error adding product: " + ex.Message, ex);
+            }
+        }
+
+        public async Task UpdateProduct(Product product)
+        {
+            try
+            {
+                var productIdParam = new SqlParameter("@ProductId", product.ProductId);
+                var clientIdParam = new SqlParameter("@ClientId", product.ClientId);
+                var categoryIdParam = new SqlParameter("@CategoryId", product.CategoryId);
+                var productNameParam = new SqlParameter("@ProductName", product.ProductName);
+                var priceParam = new SqlParameter("@Price", product.Price);
+                var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
+                var descriptionParam = new SqlParameter("@Description", product.Description);
+                var isActiveParam = new SqlParameter("@IsActive", product.IsActive);
+                var statusParam = new SqlParameter("@Status", product.Status);
+
+                await eCSDbContext.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.UpdateProduct @ProductId, @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @IsActive, @Status",
+                    productIdParam,
+                    clientIdParam,
+                    categoryIdParam,
+                    productNameParam,
+                    priceParam,
+                    initialQuantityParam,
+                    descriptionParam,
+                    isActiveParam,
+                    statusParam
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error updating product: " + ex.Message, ex);
             }
         }
 
