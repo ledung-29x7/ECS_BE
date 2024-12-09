@@ -38,7 +38,7 @@ namespace ECS.Areas.Admin.Controllers
             if (existingUser != null)
                 return BadRequest("Email is already registered.");
 
-            var client = _mapper.Map<Client>(registerDto);
+            var client = _mapper.Map<Models.Client>(registerDto);
             client.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
             await _clientRepository.RegisterClient(client);
 
