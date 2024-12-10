@@ -2,6 +2,7 @@
 using ECS.Areas.Authen.Models;
 using ECS.Areas.Units.Models;
 using ECS.Areas.Client.Models;
+using ECS.Areas.EmployeeService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECS
@@ -13,6 +14,8 @@ namespace ECS
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<ProductCategory>()
+        .HasNoKey();
         }
 
         public DbSet<Role> roles { get; set; }
@@ -23,5 +26,9 @@ namespace ECS
         public DbSet<Service> services { get; set; }
         public DbSet<Product> product { get; set; }
         public DbSet<ProductService> productServices { get; set; }
+        public DbSet <ProductCategory> ProductCategory { get; set; }
+        public DbSet<CallHistory> callHistory { get; set; }
+        public DbSet<Order> order { get; set; }
+        public DbSet<OrderDetail> orderDetails { get; set; }
     }
 }
