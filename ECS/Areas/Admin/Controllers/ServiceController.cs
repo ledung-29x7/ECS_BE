@@ -1,6 +1,7 @@
 ﻿using ECS.Areas.Admin.Models;
 using ECS.DAL.Interfaces;
 using ECS.DAL.Repositorys;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +49,8 @@ namespace ECS.Areas.Admin.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateService([FromBody] Service service)
         {

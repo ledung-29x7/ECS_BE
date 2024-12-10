@@ -22,5 +22,6 @@ namespace ECS
         public DbSet<Client> clients { get; set; }
         public DbSet<Service> services { get; set; }
         public DbSet<Product> product { get; set; }
+        public DbSet<ProductService> productServices { get; set; }
     }
 }

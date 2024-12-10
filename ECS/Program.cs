@@ -26,6 +26,8 @@ builder.Services.AddScoped<ITokenBlacklistRepository,RedisTokenBlacklistReposito
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IProductServiceRepository, ProductServiceRepository>();
+
 
 
 builder.Services.AddScoped<IProductReponsitory , ProductReponsitory>();
@@ -34,6 +36,14 @@ builder.Services.AddAutoMapper(typeof(AuthenticationProfile));
 builder.Services.AddAutoMapper(typeof(DepartmentProfile));
 builder.Services.AddAutoMapper(typeof(RoleProfile));
 builder.Services.AddAutoMapper(typeof(ClientProfile));
+
+//Phan quyen
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("ManagerPolicy", policy => policy.RequireRole("Manager", "Admin"));
+    options.AddPolicy("ServicePolicy", policy => policy.RequireRole("Service", "Manager", "Admin"));
+});
 
 // Add CORS policy
 builder.Services.AddCors(options =>
