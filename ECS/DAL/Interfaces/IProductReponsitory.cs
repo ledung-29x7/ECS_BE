@@ -1,15 +1,16 @@
 ﻿using ECS.Areas.Client.Models;
+using ECS.Areas.Units.Models;
+using ECS.Dtos;
 
 namespace ECS.DAL.Interfaces
 {
     public interface IProductReponsitory
     {
-        Task UpdateProductActivation(Guid productId, bool isActive);
         Task<List<Product>> GetAllProduct() ;
-        Task AddProduct(Product product);
-        Task UpdateProduct(Product product);
-       Task<Product>  GetProductbyID(Guid id);
-
-        Task DeleteProduct(Guid id);
+        Task<ProductWithImagesDTO> GetProductById(Guid productId);
+        Task UpdateProductAsync(Product product);
+        Task DeleteProductAsync(Guid productId);
+        Task AddProductWithImageAsync(Product product, List<ImageTable> images);
+        Task<List<ProductWithImagesDTO>> GetProductsByClientIdAsync(Guid clientId);
     }
 }

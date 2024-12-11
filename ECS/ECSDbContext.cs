@@ -4,6 +4,7 @@ using ECS.Areas.Units.Models;
 using ECS.Areas.Client.Models;
 using ECS.Areas.EmployeeService.Models;
 using Microsoft.EntityFrameworkCore;
+using ECS.Dtos;
 
 namespace ECS
 {
@@ -15,7 +16,8 @@ namespace ECS
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<ProductCategory>()
-        .HasNoKey();
+                        .HasNoKey();
+            modelBuilder.Entity<ProductWithImagesDTO>().HasNoKey();
         }
 
         public DbSet<Role> roles { get; set; }
@@ -30,5 +32,6 @@ namespace ECS
         public DbSet<CallHistory> callHistory { get; set; }
         public DbSet<Order> order { get; set; }
         public DbSet<OrderDetail> orderDetails { get; set; }
+        public DbSet<ProductWithImagesDTO> productWithImagesDTOs { get; set; }
     }
 }

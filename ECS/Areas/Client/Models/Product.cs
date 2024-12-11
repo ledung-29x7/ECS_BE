@@ -1,4 +1,6 @@
-﻿namespace ECS.Areas.Client.Models
+﻿using ECS.Areas.Units.Models;
+
+namespace ECS.Areas.Client.Models
 {
     public class Product
     {
@@ -13,6 +15,7 @@
         private int? status;
         private DateTime? createdAt;
 
+
         public Guid ProductId { get => productId; set => productId = value; }
         public Guid ClientId { get => clientId; set => clientId = value; }
         public int? CategoryId { get => categoryId; set => categoryId = value; }
@@ -23,5 +26,6 @@
         public bool IsActive { get => isActive; set => isActive = value; }
         public int? Status { get => status; set => status = value; }
         public DateTime? CreatedAt { get => createdAt; set => createdAt = value; }
+        public ICollection<ProductImage> ProductImages { get; set; }
     }
 }

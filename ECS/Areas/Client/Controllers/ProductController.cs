@@ -1,7 +1,12 @@
-﻿using ECS.Areas.Client.Models;
+﻿using AutoMapper;
+using ECS.Areas.Client.Models;
+using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
 using ECS.DAL.Repositorys;
+using ECS.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
+using NuGet.Protocol.Core.Types;
 
 namespace ECS.Areas.Client.Controllers
 {
@@ -9,105 +14,84 @@ namespace ECS.Areas.Client.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductReponsitory productReponsitory;
+        private readonly IProductReponsitory _productReponsitory;
+        private readonly IMapper _mapper;
 
-        public ProductController(IProductReponsitory productReponsitory)
+        public ProductController(IProductReponsitory productReponsitory, IMapper mapper)
         {
-            this.productReponsitory = productReponsitory;
+            _productReponsitory = productReponsitory;
+            _mapper = mapper;
         }
 
-        // GET: api/Product
         [HttpGet]
-        public async Task<IActionResult> GetProduct()
+        public async Task<IActionResult> GetAllProducts()
         {
-
-            var products = await productReponsitory.GetAllProduct();
-
+            var products = await _productReponsitory.GetAllProduct();
             return Ok(products);
-
-
         }
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductbyId(Guid id)
+        public async Task<IActionResult> GetProductById(Guid id)
         {
-
-            var products = await productReponsitory.GetProductbyID(id);
-                return Ok(products);
-  
-        }
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(Guid id)
-        {
-            await productReponsitory.DeleteProduct(id);
-            return Ok();
-        }
-        // POST: api/Product
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Product product)
-        {
+            var product = await _productReponsitory.GetProductById(id);
             if (product == null)
             {
-                return BadRequest("Product object is null.");
+                return NotFound();
             }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await productReponsitory.AddProduct(product);
-                return Ok("Product added successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            return Ok(product);
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] Product product)
         {
             if (id != product.ProductId)
             {
-                return BadRequest("Product ID mismatch.");
+                return BadRequest();
             }
 
-            if (product == null)
-            {
-                return BadRequest("Product object is null.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await productReponsitory.UpdateProduct(product);
-                return Ok("Product updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            await _productReponsitory.UpdateProductAsync(product);
+            return Ok("Update Success");
         }
-
-        /// api kích hoạt sản phẩm 
-        [HttpPatch("{id}/activate")]
-        public async Task<IActionResult> UpdateActivationStatus(Guid id, [FromQuery] bool isActive)
+        // POST: api/Product
+        [HttpPost]
+        public async Task<IActionResult> Create([FromForm] CreateProductRequest request)
         {
-            try
+            var images = new List<ImageTable>();
+
+            foreach (var imageFile in request.ImageFiles)
             {
-                await productReponsitory.UpdateProductActivation(id, isActive);
-                return Ok($"Product with ID {id} activation status set to {isActive}.");
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(memoryStream);
+                    string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+                    images.Add(new ImageTable { ImageBase64 = imageBase64 });
+                }
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var product = _mapper.Map<Product>(request);
+            await _productReponsitory.AddProductWithImageAsync(product, images);
+
+            return Ok(new { Message = "Product and images added successfully" });
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(Guid id)
+        {
+            
+            await _productReponsitory.DeleteProductAsync(id);
+            return Ok("Delete Success");
+        }
+
+        [HttpGet("client/{clientId}")]
+        public async Task<IActionResult> GetProductsByClientId(Guid clientId)
+        {
+            var products = await _productReponsitory.GetProductsByClientIdAsync(clientId);
+            if (products == null || !products.Any())
+            {
+                return NotFound();
+            }
+            return Ok(products);
+        }
+
 
     }
 }

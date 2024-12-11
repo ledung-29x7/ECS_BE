@@ -1,124 +1,215 @@
-﻿using ECS.Areas.Client.Models;
+﻿using AutoMapper;
+using ECS.Areas.Admin.Models;
+using ECS.Areas.Client.Models;
+using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ECS.DAL.Repositorys
 {
     public class ProductReponsitory : IProductReponsitory
     {
-        private readonly ECSDbContext eCSDbContext;
+        private readonly ECSDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductReponsitory(ECSDbContext eCSDbContext)
+        public ProductReponsitory(ECSDbContext eCSDbContext, IMapper mapper)
         {
-            this.eCSDbContext = eCSDbContext;
+            _context = eCSDbContext;
+            _mapper = mapper;
         }
-        public async Task UpdateProductActivation(Guid productId, bool isActive)
-        {
-            try
-            {
-                var productIdParam = new SqlParameter("@ProductId", productId);
-                var isActiveParam = new SqlParameter("@IsActive", isActive);
 
-                await eCSDbContext.Database.ExecuteSqlRawAsync(
-                    "EXEC dbo.UpdateProductActivation @ProductId, @IsActive",
-                    productIdParam,
-                    isActiveParam
-                );
-            }
-            catch (Exception ex)
+
+        public async Task AddProductWithImageAsync(Product product, List<ImageTable> images)
+        {
+            var imageDataTable = new DataTable();
+            imageDataTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var image in images)
             {
-                throw new Exception("Error updating product activation status: " + ex.Message, ex);
+                imageDataTable.Rows.Add(image.ImageBase64);
             }
+
+            var ClientId_Param = new SqlParameter("@ClientId", product.ClientId);
+            var CategoryId_Param = new SqlParameter("@CategoryId", product.CategoryId);
+            var productNameParam = new SqlParameter("@ProductName", product.ProductName);
+            var priceParam = new SqlParameter("@Price", product.Price);
+            var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
+            var descriptionParam = new SqlParameter("@Description", product.Description ?? (object)DBNull.Value);
+
+            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+            {
+                TypeName = "dbo.ImageTableType",
+                Value = imageDataTable
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddProductWithImages @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images",
+                ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
+            );
         }
+
+        public async Task DeleteProductAsync(Guid productId)
+        {
+            var param = new SqlParameter("@ProductId", productId);
+            await _context.Database.ExecuteSqlRawAsync("EXEC DeleteProduct @ProductId", param);
+        }
+
         public async Task<List<Product>> GetAllProduct()
         {
-     
-                return await eCSDbContext.product
-                    .FromSqlRaw("EXEC dbo.GetProduct")
-                    .ToListAsync();
-    
-        }
-        public async Task DeleteProduct(Guid id)
-        {
-            var productid_param = new SqlParameter("@ProductId", id);
-           await eCSDbContext.Database.ExecuteSqlRawAsync("EXEC GetProductById @ProductId" , productid_param); 
-        }
-        public async Task<Product> GetProductbyID(Guid id)
-        {
-
-            var product = await eCSDbContext.product
-                .FromSqlRaw("EXEC GetProductById @ProductId", new SqlParameter("@ProductId", id))
-                .ToListAsync();
-            return product.FirstOrDefault();
-            
+            return await _context.product
+            .FromSqlRaw("EXEC GetAllProduct")
+            .ToListAsync();
         }
 
-
-        public async Task AddProduct(Product product)
+        public async Task<ProductWithImagesDTO> GetProductById(Guid productId)
         {
-            try
-            {
-                var client_Param = new SqlParameter("@ClientId", product.ClientId);
-                var productName_param = new SqlParameter("@ProductName", product.ProductName);
-                var categoryid_Param = new SqlParameter("@CategoryId", product.CategoryId);
-                var price_Param = new SqlParameter("@Price", product.Price);
-                var quantity_Param = new SqlParameter("@InitialQuantity", product.InitialQuantity);
-                var description_Param = new SqlParameter("@Description", product.Description);
-                var active_Param = new SqlParameter("@IsActive", product.IsActive);
-                var status_Param = new SqlParameter("@Status", product.Status);
+            var productWithImagesDTO = new ProductWithImagesDTO();
+            var connection = _context.Database.GetDbConnection();
 
-                await eCSDbContext.Database.ExecuteSqlRawAsync(
-                    "EXEC dbo.AddProduct @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @IsActive, @Status",
-                    client_Param,
-                    categoryid_Param,
-                    productName_param,
-                    price_Param,
-                    quantity_Param,
-                    description_Param,
-                    active_Param,
-                    status_Param);
-
-            }
-            catch (Exception ex)
+            using (var command = connection.CreateCommand())
             {
-               
-                throw new Exception("Error adding product: " + ex.Message, ex);
+                command.CommandText = "GetProductById";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@ProductId", productId));
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    // Đọc thông tin sản phẩm
+                    if (await reader.ReadAsync())
+                    {
+                        var product = new Product
+                        {
+                            ProductId = reader.GetGuid(reader.GetOrdinal("ProductId")),
+                            ClientId = reader.GetGuid(reader.GetOrdinal("ClientId")),
+                            CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
+                            ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                            Price = reader.GetDecimal(reader.GetOrdinal("Price")),
+                            InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
+                            Description = reader.GetString(reader.GetOrdinal("Description")),
+                            IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                            Status = reader.GetInt32(reader.GetOrdinal("Status")),
+                            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                        };
+
+                        // Ánh xạ Product sang ProductWithImagesDTO
+                        productWithImagesDTO = _mapper.Map<ProductWithImagesDTO>(product);
+                    }
+
+                    // Đọc danh sách ảnh
+                    if (await reader.NextResultAsync())
+                    {
+                        var images = new List<ImageTable>();
+
+                        while (await reader.ReadAsync())
+                        {
+                            var image = new ImageTable
+                            {
+                                ImageId = reader.GetInt32(reader.GetOrdinal("ImageId")),
+                                ImageBase64 = reader.GetString(reader.GetOrdinal("ImageBase64"))
+                            };
+
+                            images.Add(image);
+                        }
+
+                        // Ánh xạ danh sách ảnh sang DTO
+                        productWithImagesDTO.Images = _mapper.Map<List<ImageTable>>(images);
+                    }
+                }
             }
+
+            return productWithImagesDTO;
         }
 
-        public async Task UpdateProduct(Product product)
-        {
-            try
-            {
-                var productIdParam = new SqlParameter("@ProductId", product.ProductId);
-                var clientIdParam = new SqlParameter("@ClientId", product.ClientId);
-                var categoryIdParam = new SqlParameter("@CategoryId", product.CategoryId);
-                var productNameParam = new SqlParameter("@ProductName", product.ProductName);
-                var priceParam = new SqlParameter("@Price", product.Price);
-                var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
-                var descriptionParam = new SqlParameter("@Description", product.Description);
-                var isActiveParam = new SqlParameter("@IsActive", product.IsActive);
-                var statusParam = new SqlParameter("@Status", product.Status);
 
-                await eCSDbContext.Database.ExecuteSqlRawAsync(
-                    "EXEC dbo.UpdateProduct @ProductId, @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @IsActive, @Status",
-                    productIdParam,
-                    clientIdParam,
-                    categoryIdParam,
-                    productNameParam,
-                    priceParam,
-                    initialQuantityParam,
-                    descriptionParam,
-                    isActiveParam,
-                    statusParam
-                );
-            }
-            catch (Exception ex)
+        public async Task UpdateProductAsync(Product product)
+        {
+            var parameters = new[]
+        {
+            new SqlParameter("@ProductId", product.ProductId),
+            new SqlParameter("@CategoryId", product.CategoryId),
+            new SqlParameter("@ProductName", product.ProductName),
+            new SqlParameter("@Price", product.Price),
+            new SqlParameter("@InitialQuantity", product.InitialQuantity),
+            new SqlParameter("@Description", product.Description)
+        };
+
+            await _context.Database.ExecuteSqlRawAsync("EXEC UpdateProduct @ProductId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description", parameters);
+        }
+
+        public async Task<List<ProductWithImagesDTO>> GetProductsByClientIdAsync(Guid clientId)
+        {
+            var products = new List<ProductWithImagesDTO>();
+            var connection = _context.Database.GetDbConnection();
+
+            using (var command = connection.CreateCommand())
             {
-                throw new Exception("Error updating product: " + ex.Message, ex);
+                command.CommandText = "GetProductsByClientId";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@ClientId", clientId));
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    var productDictionary = new Dictionary<Guid, ProductWithImagesDTO>();
+
+                    // Đọc thông tin sản phẩm
+                    while (await reader.ReadAsync())
+                    {
+                        var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
+
+                        if (!productDictionary.ContainsKey(productId))
+                        {
+                            var product = new Product
+                            {
+                                ProductId = productId,
+                                ClientId = reader.GetGuid(reader.GetOrdinal("ClientId")),
+                                CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
+                                ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                Price = reader.GetDecimal(reader.GetOrdinal("Price")),
+                                InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
+                                Description = reader.GetString(reader.GetOrdinal("Description")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                Status = reader.GetInt32(reader.GetOrdinal("Status")),
+                                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                            };
+
+                            var productDTO = _mapper.Map<ProductWithImagesDTO>(product);
+                            productDTO.Images = new List<ImageTable>();
+
+                            productDictionary.Add(productId, productDTO);
+                        }
+                    }
+
+                    // Đọc thông tin ảnh
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
+                            var image = new ImageTable
+                            {
+                                ImageId = reader.GetInt32(reader.GetOrdinal("ImageId")),
+                                ImageBase64 = reader.GetString(reader.GetOrdinal("ImageBase64"))
+                            };
+
+                            if (productDictionary.ContainsKey(productId))
+                            {
+                                var imageDTO = _mapper.Map<ImageTable>(image);
+                                productDictionary[productId].Images.Add(imageDTO);
+                            }
+                        }
+                    }
+
+                    products = productDictionary.Values.ToList();
+                }
             }
+
+            return products;
         }
 
     }
