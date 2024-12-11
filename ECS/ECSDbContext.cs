@@ -18,6 +18,8 @@ namespace ECS
             modelBuilder.Entity<ProductCategory>()
                         .HasNoKey();
             modelBuilder.Entity<ProductWithImagesDTO>().HasNoKey();
+            modelBuilder.Entity<EmployeeWorkListDto>().HasNoKey();
+
         }
 
         public DbSet<Role> roles { get; set; }
@@ -33,5 +35,8 @@ namespace ECS
         public DbSet<Order> order { get; set; }
         public DbSet<OrderDetail> orderDetails { get; set; }
         public DbSet<ProductWithImagesDTO> productWithImagesDTOs { get; set; }
+        public DbSet<EmployeeService> employeeService { get; set; }
+        public DbSet<EmployeeWorkListDto> employeeWorkListDTOs { get; set;}
+
     }
 }

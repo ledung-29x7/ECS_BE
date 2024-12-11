@@ -1,5 +1,7 @@
 ﻿using ECS.Areas.EmployeeService.Models;
 using ECS.DAL.Interfaces;
+using ECS.DAL.Repositorys;
+using ECS.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +17,25 @@ namespace ECS.Areas.EmployeeService.Controllers
         {
             _orderRepository = orderRepository;
         }
+        [HttpPost("AddOrderWithDetails")]
+        public async Task<IActionResult> AddOrderWithDetails([FromBody] AddOrderWithDetailsRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            try
+            {
+                await _orderRepository.AddOrderWithDetails(request.Order, request.OrderDetails);
+
+                return Ok(new { Message = "Order and OrderDetails added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {

@@ -1,5 +1,6 @@
 ﻿using ECS.Areas.Authen.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,6 +71,16 @@ namespace ECS.DAL.Repositorys
         public async Task<List<Employee>> GetAllEmployee()
         {
             return await Task.FromResult(_context.employees.FromSqlRaw("EXECUTE dbo.GetAllEmployee").ToList());
+        }
+        public async Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId)
+        {
+            var employeeWorkList = await _context.employeeWorkListDTOs
+                .FromSqlInterpolated($@"
+                    EXEC GetEmployeeWorkListById @EmployeeId = {employeeId}
+                ")
+                .ToListAsync();
+
+            return employeeWorkList;
         }
     }
 }
