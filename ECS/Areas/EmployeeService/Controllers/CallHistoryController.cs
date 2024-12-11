@@ -53,5 +53,28 @@ namespace ECS.Areas.EmployeeService.Controllers
             }
         }
 
+        // [HttpPut("{callId}")]
+        // public async Task<IActionResult> UpdateCallHistory(int callId, [FromBody] CallHistory callHistory)
+        // {
+        //     if (callId != callHistory.CallId)
+        //     {
+        //         return BadRequest(new { message = "CallId in the body does not match the CallId in the URL." });
+        //     }
+
+        //     if (callId <= 0)
+        //     {
+        //         return BadRequest(new { message = "Invalid CallId." });
+        //     }
+
+        //     try
+        //     {
+        //         await callHistoryRepository.UpdateCallHistoryAsync(callId, callHistory.Status, callHistory.Notes);
+        //         return Ok(new { message = "Call history updated successfully." });
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, new { error = "An error occurred while updating the call history.", details = ex.Message });
+        //     }
+        // }
     }
 }

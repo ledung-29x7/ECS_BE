@@ -20,10 +20,22 @@ namespace ECS.DAL.Repositorys
 
         public async Task UpdateCallHistoryAsync(int callId,int status, string notes)
         {
-            var CallHistory_Param = new SqlParameter("@CallId", callId);
-            var CallStatus_Param = new SqlParameter("@Status", status);
-            var Notes_Param = new SqlParameter("@Notes", notes);
-            await _context.Database.ExecuteSqlRawAsync("EXECUTE dbo.UpdateCallHistoryAsync @CallId,@CallStatus, @Notes", CallHistory_Param, CallStatus_Param, Notes_Param);
+            try
+            {
+                var CallHistory_Param = new SqlParameter("@CallId", callId);
+                var Status_Param = new SqlParameter("@Status", status);
+                var Notes_Param = new SqlParameter("@Notes", notes);
+                
+                Console.WriteLine($"Executing SQL: EXECUTE dbo.UpdateCallHistoryAsync @CallId={callId}, @Status={status}, @Notes={notes}");
+                await _context.Database.ExecuteSqlRawAsync("EXECUTE dbo.UpdateCallHistoryAsync @CallId,@Status, @Notes", CallHistory_Param, Status_Param, Notes_Param);
+                Console.WriteLine("Update successful.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+            
         }
     }
 }
