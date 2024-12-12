@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using ECS.Areas.Authen.Models;
+using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
 using ECS.DAL.Repositorys;
 using ECS.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol.Core.Types;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace ECS.Areas.Authen.Controllers
@@ -33,15 +36,27 @@ namespace ECS.Areas.Authen.Controllers
             _mapper = mapper;
         }
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterEmployeeDto registerDto)
+        public async Task<IActionResult> Register([FromForm] RegisterEmployeeDto registerDto)
         {
+            var images = new List<ImageTable>();
+
+            foreach (var imageFile in registerDto.ImageFiles)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(memoryStream);
+                    string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+                    images.Add(new ImageTable { ImageBase64 = imageBase64 });
+                }
+            }
+
             var existingUser = await _employeeRepository.GetEmployeeByEmail(registerDto.Email);
             if (existingUser != null)
                 return BadRequest("Email is already registered.");
 
             var employee = _mapper.Map<Employee>(registerDto);
             employee.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-            await _employeeRepository.RegisterEmployee(employee);
+            await _employeeRepository.AddEmployeeWithImagesAsync(employee, images);
 
             return Ok("Employee registered successfully.");
         }
@@ -72,6 +87,7 @@ namespace ECS.Areas.Authen.Controllers
             {
                 UserName = employee.FirstName,
                 Role = role.RoleName,
+                EmployeeID = employee.EmployeeId,
                 token
             });
         }
@@ -91,6 +107,13 @@ namespace ECS.Areas.Authen.Controllers
             await _tokenBlacklistRepository.AddTokenToBlacklistAsync(token, expiration);
 
             return Ok(new { message = "Logged out successfully" });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees()
+        {
+            var employees = await _employeeRepository.GetAllEmployeesAsync();
+            return Ok(employees);
         }
     }
 }

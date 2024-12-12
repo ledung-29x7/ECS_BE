@@ -58,11 +58,73 @@ namespace ECS.DAL.Repositorys
             await _context.Database.ExecuteSqlRawAsync("EXEC DeleteProduct @ProductId", param);
         }
 
-        public async Task<List<Product>> GetAllProduct()
+        public async Task<List<ProductWithImagesDTO>> GetAllProduct()
         {
-            return await _context.product
-            .FromSqlRaw("EXEC GetAllProduct")
-            .ToListAsync();
+            var products = new List<ProductWithImagesDTO>();
+            var connection = _context.Database.GetDbConnection();
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "GetAllProduct";
+                command.CommandType = CommandType.StoredProcedure;
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    var productDictionary = new Dictionary<Guid, ProductWithImagesDTO>();
+
+                    // Đọc thông tin sản phẩm
+                    while (await reader.ReadAsync())
+                    {
+                        var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
+
+                        if (!productDictionary.ContainsKey(productId))
+                        {
+                            var product = new Product
+                            {
+                                ProductId = productId,
+                                ClientId = reader.GetGuid(reader.GetOrdinal("ClientId")),
+                                CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
+                                ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                Price = reader.GetDecimal(reader.GetOrdinal("Price")),
+                                InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
+                                Description = reader.GetString(reader.GetOrdinal("Description")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                Status = reader.GetInt32(reader.GetOrdinal("Status"))
+                            };
+
+                            var productDTO = _mapper.Map<ProductWithImagesDTO>(product);
+                            productDTO.Images = new List<ImageTable>();
+
+                            productDictionary.Add(productId, productDTO);
+                        }
+                    }
+
+                    // Đọc thông tin ảnh
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
+                            var image = new ImageTable
+                            {
+                                ImageId = reader.GetInt32(reader.GetOrdinal("ImageId")),
+                                ImageBase64 = reader.GetString(reader.GetOrdinal("ImageBase64"))
+                            };
+
+                            if (productDictionary.ContainsKey(productId))
+                            {
+                                var imageDTO = _mapper.Map<ImageTable>(image);
+                                productDictionary[productId].Images.Add(imageDTO);
+                            }
+                        }
+                    }
+
+                    products = productDictionary.Values.ToList();
+                }
+            }
+
+            return products;
         }
 
         public async Task<ProductWithImagesDTO> GetProductById(Guid productId)
@@ -92,8 +154,7 @@ namespace ECS.DAL.Repositorys
                             InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
                             Description = reader.GetString(reader.GetOrdinal("Description")),
                             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                            Status = reader.GetInt32(reader.GetOrdinal("Status")),
-                            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                            Status = reader.GetInt32(reader.GetOrdinal("Status"))
                         };
 
                         // Ánh xạ Product sang ProductWithImagesDTO
@@ -174,8 +235,7 @@ namespace ECS.DAL.Repositorys
                                 InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
                                 Description = reader.GetString(reader.GetOrdinal("Description")),
                                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                                Status = reader.GetInt32(reader.GetOrdinal("Status")),
-                                CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
+                                Status = reader.GetInt32(reader.GetOrdinal("Status"))
                             };
 
                             var productDTO = _mapper.Map<ProductWithImagesDTO>(product);

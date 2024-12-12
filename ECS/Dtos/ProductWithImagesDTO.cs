@@ -13,7 +13,6 @@ namespace ECS.Dtos
         public string Description { get; set; }
         public bool IsActive { get; set; }
         public int Status { get; set; }
-        public DateTime CreatedAt { get; set; }
         public List<ImageTable> Images { get; set; } = new List<ImageTable>();
     }
 }

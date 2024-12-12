@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ECS.Areas.Client.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ECS.Areas.Authen.Models
 {
@@ -24,5 +25,7 @@ namespace ECS.Areas.Authen.Models
         public string Password { get => password; set => password = value; }
         public int? DepartmentID { get => departmentID; set => departmentID = value; }
         public DateTime? CreatedAt { get => createdAt; set => createdAt = value; }
+        public ICollection<EmployeeImage> EmployeeImages { get; set; }
+
     }
 }

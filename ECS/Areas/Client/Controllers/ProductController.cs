@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ECS.Areas.Admin.Models;
 using ECS.Areas.Client.Models;
 using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
@@ -27,6 +28,10 @@ namespace ECS.Areas.Client.Controllers
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productReponsitory.GetAllProduct();
+            if (products == null || !products.Any())
+            {
+                return NotFound();
+            }
             return Ok(products);
         }
 

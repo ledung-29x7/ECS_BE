@@ -12,6 +12,8 @@ namespace ECS.MappingProfile
                 .ForMember(dest => dest.Password, opt => opt.Ignore());
             CreateMap<LoginEmployeeDto, Employee>();
             CreateMap<Employee, LoginEmployeeDto>();
+            CreateMap<EmployeeWithImagesDTO, Employee>();
+            CreateMap<Employee, EmployeeWithImagesDTO>();
         }
     }
 }

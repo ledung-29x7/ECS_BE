@@ -1,17 +1,24 @@
-﻿using ECS.Areas.Authen.Models;
+﻿using AutoMapper;
+using ECS.Areas.Authen.Models;
+using ECS.Areas.Client.Models;
+using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ECS.DAL.Repositorys
 {
     public class EmployeeRepository : IEmployeeRepository
     {
         private readonly ECSDbContext _context;
+        private readonly IMapper _mapper;
 
-        public EmployeeRepository(ECSDbContext context) 
+        public EmployeeRepository(ECSDbContext context, IMapper mapper) 
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task DeleteEmployee(Guid employeeid)
@@ -70,6 +77,96 @@ namespace ECS.DAL.Repositorys
         public async Task<List<Employee>> GetAllEmployee()
         {
             return await Task.FromResult(_context.employees.FromSqlRaw("EXECUTE dbo.GetAllEmployee").ToList());
+        }
+
+        public async Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images)
+        {
+            var imageDataTable = new DataTable();
+            imageDataTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var image in images)
+            {
+                imageDataTable.Rows.Add(image.ImageBase64);
+            }
+            var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
+            var LastName_param = new SqlParameter("@LastName", employee.LastName);
+            var email_param = new SqlParameter("@Email", employee.Email);
+            var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
+            var Password_param = new SqlParameter("@Password", employee.Password);
+            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+            {
+                TypeName = "dbo.ImageTableType",
+                Value = imageDataTable
+            };
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email, @PhoneNumber, @Password, @Images",
+                FirstName_param, LastName_param, email_param, Phone_number_param, Password_param, imagesParam
+            );
+        }
+
+        public async Task<List<EmployeeWithImagesDTO>> GetAllEmployeesAsync()
+        {
+            var employees = new List<EmployeeWithImagesDTO>();
+            var connection = _context.Database.GetDbConnection();
+
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "GetAllEmployee";
+                command.CommandType = CommandType.StoredProcedure;
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    var employeeDictionary = new Dictionary<Guid, EmployeeWithImagesDTO>();
+
+                    // Đọc thông tin sản phẩm
+                    while (await reader.ReadAsync())
+                    {
+                        var employeeId = reader.GetGuid(reader.GetOrdinal("EmployeeId"));
+
+                        if (!employeeDictionary.ContainsKey(employeeId))
+                        {
+                            var employee = new EmployeeWithImagesDTO
+                            {
+                                EmployeeId = employeeId,
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                                RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
+                                DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Images = new List<ImageTable>()
+                            };
+                            employeeDictionary.Add(employeeId, employee);
+                        }
+                    }
+
+                    // Đọc thông tin ảnh
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var employeeId = reader.GetGuid(reader.GetOrdinal("EmployeeId"));
+                            var image = new ImageTable
+                            {
+                                ImageId = reader.GetInt32(reader.GetOrdinal("ImageId")),
+                                ImageBase64 = reader.GetString(reader.GetOrdinal("ImageBase64"))
+                            };
+
+                            if (employeeDictionary.ContainsKey(employeeId))
+                            {
+                                var imageDTO = _mapper.Map<ImageTable>(image);
+                                employeeDictionary[employeeId].Images.Add(imageDTO);
+                            }
+                        }
+                    }
+
+                    employees = employeeDictionary.Values.ToList();
+                }
+            }
+
+            return employees;
         }
     }
 }

@@ -42,6 +42,14 @@ namespace ECS.Areas.Admin.Controllers
             return Ok("Set manager for department success");
         }
 
+        [HttpPost("delete-employee")]
+        public async Task<IActionResult> DeleteEmployee(Guid EmployeeId) 
+        {
+            await _employeeRepository.DeleteEmployeeAndUnsetManager(EmployeeId);
+            return Ok("DeleteEmployee Success");
+        }
+
+
 
     }
 }

@@ -7,6 +7,7 @@ using ECS.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol.Core.Types;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace ECS.Areas.Admin.Controllers
@@ -69,6 +70,7 @@ namespace ECS.Areas.Admin.Controllers
             return Ok(new
             {
                 UserName = client.ClientName,
+                UserId = client.ClientId,
                 token
             });
         }

@@ -6,7 +6,7 @@ namespace ECS.DAL.Interfaces
 {
     public interface IProductReponsitory
     {
-        Task<List<Product>> GetAllProduct() ;
+        Task<List<ProductWithImagesDTO>> GetAllProduct() ;
         Task<ProductWithImagesDTO> GetProductById(Guid productId);
         Task UpdateProductAsync(Product product);
         Task DeleteProductAsync(Guid productId);

@@ -1,4 +1,6 @@
 ﻿using ECS.Areas.Authen.Models;
+using ECS.Areas.Units.Models;
+using ECS.Dtos;
 
 namespace ECS.DAL.Interfaces
 {
@@ -11,7 +13,9 @@ namespace ECS.DAL.Interfaces
         Task UpdateEmployeeRole(Guid EmployeeId, int RoleId);
         Task UpdateDepartmentForEmployee(Guid EmployeeId, int departmentsId);
         Task DeleteEmployeeAndUnsetManager(Guid EmployeeId);
-        
+
         Task<List<Employee>> GetAllEmployee();
+        Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images);
+        Task<List<EmployeeWithImagesDTO>> GetAllEmployeesAsync();
     }
 }
