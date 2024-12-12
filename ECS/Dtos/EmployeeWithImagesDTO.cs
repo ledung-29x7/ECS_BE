@@ -11,6 +11,6 @@ namespace ECS.Dtos
         public string? PhoneNumber { get; set; }
         public int RoleId { get; set; }
         public int? DepartmentId { get; set; }
-        public List<ImageTable>? Images { get; set; } = new List<ImageTable>();
+        public List<ImageTable> Images { get; set; } = new List<ImageTable>();
     }
 }

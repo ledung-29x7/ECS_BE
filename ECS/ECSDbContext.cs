@@ -15,9 +15,9 @@ namespace ECS
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<ProductCategory>()
-                        .HasNoKey();
+            modelBuilder.Entity<ProductCategory>().HasNoKey();
             modelBuilder.Entity<ProductWithImagesDTO>().HasNoKey();
+            modelBuilder.Entity<EmployeeWithImagesDTO>().HasNoKey();
         }
 
         public DbSet<Role> roles { get; set; }

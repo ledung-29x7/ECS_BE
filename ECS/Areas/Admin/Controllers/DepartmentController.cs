@@ -35,6 +35,17 @@ namespace ECS.Areas.Admin.Controllers
             return Ok(departments);
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Departments>> GetDepartmentById(int id) 
+        {
+            var departments = await _departmentRepository.GetDepartmentsById(id);
+            if (departments == null)
+            {
+                return NotFound($"Role with ID {id} not found.");
+            }
+            return Ok(departments);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Departments>> AddDepartment([FromBody] DeparmentCreateDto departmentDto)
         {
