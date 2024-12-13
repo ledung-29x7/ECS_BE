@@ -8,6 +8,7 @@
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string ServiceName { get; set; }
+        public string ProductName { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using ECS.Areas.EmployeeService.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +32,7 @@ namespace ECS.DAL.Repositorys
 
             return result.FirstOrDefault();
         }
-        public async Task AddOrderWithDetails(Order order, List<OrderDetail> orderDetails)
+        public async Task AddOrderWithDetails(OrderDto order, List<OrderDetailDto> orderDetails)
         {
             order.TotalAmount = orderDetails.Sum(detail => detail.Quantity * detail.TotalPrice);
 
@@ -53,9 +54,9 @@ namespace ECS.DAL.Repositorys
                 new SqlParameter("@CallId", order.CallId),
                 new SqlParameter("@Orderer", order.Orderer),
                 new SqlParameter("@TotalAmount", order.TotalAmount), 
-                new SqlParameter("@Recipient_Name", order.Recipient_Name),
-                new SqlParameter("@Recipient_Phone", order.Recipient_Phone),
-                new SqlParameter("@Recipient_Address", order.Recipient_Address),
+                new SqlParameter("@Recipient_Name", order.RecipientName),
+                new SqlParameter("@Recipient_Phone", order.RecipientPhone),
+                new SqlParameter("@Recipient_Address", order.RecipientAddress),
                 new SqlParameter("@OrderStatus", order.OrderStatus),
                 orderIdOutput
             );

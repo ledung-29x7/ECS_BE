@@ -1,11 +1,12 @@
 ﻿using ECS.Areas.EmployeeService.Models;
+using StackExchange.Redis;
 
 namespace ECS.Dtos
 {
     public class AddOrderWithDetailsRequest
     {
-        public Order Order { get; set; }
-        public List<OrderDetail> OrderDetails { get; set; }
+        public OrderDto Order { get; set; }
+        public List<OrderDetailDto> OrderDetails { get; set; }
 
     }
 }

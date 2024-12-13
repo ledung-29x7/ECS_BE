@@ -36,6 +36,7 @@ namespace ECS.Areas.EmployeeService.Controllers
                 return StatusCode(500, new { Error = ex.Message });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
