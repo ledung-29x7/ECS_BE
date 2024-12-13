@@ -272,5 +272,19 @@ namespace ECS.DAL.Repositorys
             return products;
         }
 
+        public async Task ActiveProduct(Guid productId)
+        {
+            var Id_Param = new SqlParameter("@ProductId", productId);
+            await _context.Database.ExecuteSqlRawAsync("EXEC ActiveProduct @ProductId", Id_Param);
+        }
+
+        public async Task<Client> GetClientByProductId(Guid productId)
+        {
+            var ProductId_Param = new SqlParameter("@ProductId", productId);
+            var clients = await _context.clients
+              .FromSqlRaw("EXECUTE dbo.GetClientByProductId @ProductId", ProductId_Param)
+              .ToListAsync();
+            return clients.FirstOrDefault();
+        }
     }
 }

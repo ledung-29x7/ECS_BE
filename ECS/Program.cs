@@ -27,6 +27,7 @@ builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductServiceRepository, ProductServiceRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 

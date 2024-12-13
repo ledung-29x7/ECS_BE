@@ -1,4 +1,5 @@
-﻿using ECS.Areas.Client.Models;
+﻿using ECS.Areas.Admin.Models;
+using ECS.Areas.Client.Models;
 using ECS.Areas.Units.Models;
 using ECS.Dtos;
 
@@ -12,5 +13,8 @@ namespace ECS.DAL.Interfaces
         Task DeleteProductAsync(Guid productId);
         Task AddProductWithImageAsync(Product product, List<ImageTable> images);
         Task<List<ProductWithImagesDTO>> GetProductsByClientIdAsync(Guid clientId);
+        Task ActiveProduct(Guid productId);
+
+        Task<Client> GetClientByProductId(Guid productId);
     }
 }
