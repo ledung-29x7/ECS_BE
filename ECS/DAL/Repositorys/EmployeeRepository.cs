@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ECS.Areas.Admin.Models;
 using ECS.Areas.Authen.Models;
 using ECS.Areas.Client.Models;
 using ECS.Areas.Units.Models;
@@ -166,6 +167,29 @@ namespace ECS.DAL.Repositorys
             }
 
             return employees;
+        }
+
+        public async Task ChangePassword(Guid employeeId, string oldPasswordHash, string newPasswordHash)
+        {
+            var EmployeeId_Param = new SqlParameter("@EmployeeId", employeeId);
+            var employees = await _context.employees.FromSqlRaw("EXEC GetEmployeeById @EmployeeId", EmployeeId_Param).ToListAsync();
+            var employee = employees.FirstOrDefault();
+            if (employee == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            // So sánh mật khẩu người dùng nhập vào với mật khẩu đã băm trong cơ sở dữ liệu
+            if (!BCrypt.Net.BCrypt.Verify(oldPasswordHash, employee.Password))
+            {
+                throw new Exception("Old password does not match.");
+            }
+
+            // Nếu mật khẩu cũ khớp, gọi stored procedure để cập nhật mật khẩu mới
+            var id_param = new SqlParameter("@EmployeeId", employeeId);
+            var newPasswordHash_param = new SqlParameter("@NewPasswordHash", newPasswordHash);
+
+            await _context.Database.ExecuteSqlRawAsync("EXEC dbo.ChangePasswordEmployee @EmployeeId, @NewPasswordHash", id_param, newPasswordHash_param);
         }
     }
 }

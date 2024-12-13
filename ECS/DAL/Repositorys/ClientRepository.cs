@@ -13,6 +13,30 @@ namespace ECS.DAL.Repositorys
         {
             _context = context;
         }
+
+        public async Task ChangePassword(Guid clientId, string oldPasswordHash, string newPasswordHash)
+        {
+            var ClientId_Param = new SqlParameter("@ClientId", clientId);
+            var clients = await _context.clients.FromSqlRaw("EXEC GetClientById @ClientId", ClientId_Param).ToListAsync();
+            var client = clients.FirstOrDefault();
+            if (client == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            // So sánh mật khẩu người dùng nhập vào với mật khẩu đã băm trong cơ sở dữ liệu
+            if (!BCrypt.Net.BCrypt.Verify(oldPasswordHash, client.Password))
+            {
+                throw new Exception("Old password does not match.");
+            }
+
+            // Nếu mật khẩu cũ khớp, gọi stored procedure để cập nhật mật khẩu mới
+            var id_param = new SqlParameter("@ClientId", clientId);
+            var newPasswordHash_param = new SqlParameter("@NewPasswordHash", newPasswordHash);
+
+            await _context.Database.ExecuteSqlRawAsync("EXEC dbo.ChangePasswordClient @ClientId, @NewPasswordHash", id_param, newPasswordHash_param);
+        }
+
         public async Task DeleteClient(Guid clientId)
         {
             var ClientId_Param = new SqlParameter("@ClientId", clientId);

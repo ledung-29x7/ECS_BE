@@ -11,5 +11,6 @@ namespace ECS.DAL.Interfaces
         Task<List<Client>> GetAllClient();
         Task DeleteClient(Guid clientId);
         Task UpdateClient(Client client);
+        Task ChangePassword(Guid clientId, string oldPasswordHash, string newPasswordHash);
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol.Core.Types;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ECS.Areas.Admin.Controllers
 {
@@ -24,7 +25,7 @@ namespace ECS.Areas.Admin.Controllers
         public ClientController(IClientRepository clientRepository,
                                         IMapper mapper,
                                         IAuthenticationRepository authenticationRepository,
-                                        ITokenBlacklistRepository tokenBlacklistRepository) 
+                                        ITokenBlacklistRepository tokenBlacklistRepository)
         {
             _clientRepository = clientRepository;
             _authenticationRepository = authenticationRepository;
@@ -89,6 +90,24 @@ namespace ECS.Areas.Admin.Controllers
             await _tokenBlacklistRepository.AddTokenToBlacklistAsync(token, expiration);
 
             return Ok(new { message = "Logged out successfully" });
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDto)
+        {
+            var clientId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+
+            try
+            {
+                await _clientRepository.ChangePassword(clientId, changePasswordDto.OldPassword, newPasswordHash);
+                return Ok(new { message = "Password changed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
