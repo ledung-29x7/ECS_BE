@@ -7,5 +7,6 @@
         public int TotalSold { get; set; }
         public decimal TotalRevenue { get; set; }
         public int StockAvailable { get; set; }
+        public string StockStatus { get; set; }
     }
 }
