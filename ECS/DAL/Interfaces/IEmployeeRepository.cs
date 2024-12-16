@@ -13,10 +13,12 @@ namespace ECS.DAL.Interfaces
         Task UpdateEmployeeRole(Guid EmployeeId, int RoleId);
         Task UpdateDepartmentForEmployee(Guid EmployeeId, int departmentsId);
         Task DeleteEmployeeAndUnsetManager(Guid EmployeeId);
-
+        
         Task<List<Employee>> GetAllEmployee();
         Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images);
         Task<List<EmployeeWithImagesDTO>> GetAllEmployeesAsync();
         Task ChangePassword(Guid employeeId, string oldPasswordHash, string newPasswordHash);
+        Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId);
+
     }
 }

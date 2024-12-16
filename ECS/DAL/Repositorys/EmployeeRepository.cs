@@ -5,6 +5,7 @@ using ECS.Areas.Client.Models;
 using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
 using ECS.Dtos;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -190,6 +191,16 @@ namespace ECS.DAL.Repositorys
             var newPasswordHash_param = new SqlParameter("@NewPasswordHash", newPasswordHash);
 
             await _context.Database.ExecuteSqlRawAsync("EXEC dbo.ChangePasswordEmployee @EmployeeId, @NewPasswordHash", id_param, newPasswordHash_param);
+        }
+        public async Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId)
+        {
+            var employeeWorkList = await _context.employeeWorkListDTOs
+                .FromSqlInterpolated($@"
+                    EXEC GetEmployeeWorkListById @EmployeeId = {employeeId}
+                ")
+                .ToListAsync();
+
+            return employeeWorkList;
         }
     }
 }

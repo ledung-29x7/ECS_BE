@@ -18,11 +18,13 @@ namespace ECS.Areas.Client.Controllers
         private readonly IProductReponsitory _productReponsitory;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly IProductSalesRepository _productSalesRepository;
 
-        public ProductController(IProductReponsitory productReponsitory, IMapper mapper, IEmailService emailService)
+        public ProductController(IProductReponsitory productReponsitory,IEmailService emailService, IMapper mapper, IProductSalesRepository productSalesRepository = null)
         {
             _productReponsitory = productReponsitory;
             _mapper = mapper;
+            _productSalesRepository = productSalesRepository;
             _emailService = emailService;
         }
 
@@ -110,6 +112,19 @@ namespace ECS.Areas.Client.Controllers
                 return NotFound();
             }
             return Ok(products);
+        }
+        [HttpGet("GetProductSalesAndStock")]
+        public async Task<IActionResult> GetProductSalesAndStock([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            try
+            {
+                var result = await _productSalesRepository.GetProductSalesAndStockAsync(startDate, endDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
         }
 
 

@@ -28,15 +28,14 @@ builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IProductServiceRepository, ProductServiceRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-
-
-
+builder.Services.AddScoped<IEmployeeServiceRepository, EmployeeServiceRepository>();
 builder.Services.AddScoped<IProductReponsitory , ProductReponsitory>();
 builder.Services.AddScoped<IProductCategoryReponsitory, ProductCategoryReponsitory>();
 builder.Services.AddScoped<ICallHistoryReponsitory , CallHistoryReponsitory>();
 builder.Services.AddScoped<IOrderReponsitory, OrderReponsitory>();
 builder.Services.AddScoped<IOrderDetailReponsitory , OrderDetailReponsitory>();
-
+builder.Services.AddScoped<IProductSalesRepository, ProductSalesRepository>();
+builder.Services.AddScoped<IEmployeeProductCategoryRepository, EmployeeProductCategoryRepository>();
 
 builder.Services.AddAutoMapper(typeof(AuthenticationProfile));
 builder.Services.AddAutoMapper(typeof(DepartmentProfile));

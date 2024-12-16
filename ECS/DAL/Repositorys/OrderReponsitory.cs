@@ -1,5 +1,7 @@
-﻿using ECS.Areas.EmployeeService.Models;
+﻿using System.Data;
+using ECS.Areas.EmployeeService.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +32,57 @@ namespace ECS.DAL.Repositorys
 
             return result.FirstOrDefault();
         }
+        public async Task AddOrderWithDetails(OrderDto order, List<OrderDetailDto> orderDetails)
+        {
+            order.TotalAmount = orderDetails.Sum(detail => detail.Quantity * detail.TotalPrice);
+
+            var orderIdOutput = new SqlParameter("@OrderId", SqlDbType.Int)
+            {
+                Direction = ParameterDirection.Output
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                @"EXEC dbo.AddOrder 
+            @CallId, 
+            @Orderer, 
+            @TotalAmount, 
+            @Recipient_Name, 
+            @Recipient_Phone, 
+            @Recipient_Address, 
+            @OrderStatus, 
+            @OrderId OUTPUT",
+                new SqlParameter("@CallId", order.CallId),
+                new SqlParameter("@Orderer", order.Orderer),
+                new SqlParameter("@TotalAmount", order.TotalAmount), 
+                new SqlParameter("@Recipient_Name", order.RecipientName),
+                new SqlParameter("@Recipient_Phone", order.RecipientPhone),
+                new SqlParameter("@Recipient_Address", order.RecipientAddress),
+                new SqlParameter("@OrderStatus", order.OrderStatus),
+                orderIdOutput
+            );
+
+            int newOrderId = (int)orderIdOutput.Value;
+
+            foreach (var detail in orderDetails)
+            {
+                var orderIdParam = new SqlParameter("@OrderId", newOrderId);
+                var productIdParam = new SqlParameter("@ProductId", detail.ProductId);
+                var quantityParam = new SqlParameter("@Quantity", detail.Quantity);
+                var totalPriceParam = new SqlParameter("@TotalPrice", detail.TotalPrice);
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    @"EXEC dbo.AddOrderDetail 
+                @OrderId, 
+                @ProductId, 
+                @Quantity, 
+                @TotalPrice",
+                    orderIdParam, productIdParam, quantityParam, totalPriceParam
+                );
+            }
+        }
+
+
+
 
         public async Task AddOrder(Order order)
         {
