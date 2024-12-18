@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Text.Json;
 
 namespace ECS.DAL.Repositorys
 {
@@ -23,34 +24,7 @@ namespace ECS.DAL.Repositorys
         }
 
 
-        public async Task AddProductWithImageAsync(Product product, List<ImageTable> images)
-        {
-            var imageDataTable = new DataTable();
-            imageDataTable.Columns.Add("ImageBase64", typeof(string));
 
-            foreach (var image in images)
-            {
-                imageDataTable.Rows.Add(image.ImageBase64);
-            }
-
-            var ClientId_Param = new SqlParameter("@ClientId", product.ClientId);
-            var CategoryId_Param = new SqlParameter("@CategoryId", product.CategoryId);
-            var productNameParam = new SqlParameter("@ProductName", product.ProductName);
-            var priceParam = new SqlParameter("@Price", product.Price);
-            var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
-            var descriptionParam = new SqlParameter("@Description", product.Description ?? (object)DBNull.Value);
-
-            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
-            {
-                TypeName = "dbo.ImageTableType",
-                Value = imageDataTable
-            };
-
-            await _context.Database.ExecuteSqlRawAsync(
-                "EXEC AddProductWithImages @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images",
-                ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
-            );
-        }
 
         public async Task DeleteProductAsync(Guid productId)
         {
@@ -285,6 +259,108 @@ namespace ECS.DAL.Repositorys
               .FromSqlRaw("EXECUTE dbo.GetClientByProductId @ProductId", ProductId_Param)
               .ToListAsync();
             return clients.FirstOrDefault();
+        }
+
+        public async Task AddProduct(CreateProductRequest request, string productServicesJson)
+        {
+            // Deserialize ProductServices từ chuỗi JSON
+            var productServices = new List<ProductServiceRequest>();
+            if (!string.IsNullOrWhiteSpace(productServicesJson))
+            {
+                try
+                {
+                    productServices = JsonSerializer.Deserialize<List<ProductServiceRequest>>(productServicesJson);
+                }
+                catch (JsonException ex)
+                {
+                    throw new ArgumentException("Invalid ProductServices JSON format", ex);
+                }
+            }
+
+            // Tạo DataTable cho Images
+            var imagesTable = new DataTable();
+            imagesTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var imageFile in request.ImageFiles)
+            {
+                using var memoryStream = new MemoryStream();
+                await imageFile.CopyToAsync(memoryStream);
+                var imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+                imagesTable.Rows.Add(imageBase64);
+            }
+
+            // Tạo DataTable cho ProductServices
+            var productServicesTable = new DataTable();
+            productServicesTable.Columns.Add("ServiceId", typeof(int));
+            productServicesTable.Columns.Add("ClientId", typeof(Guid));
+            productServicesTable.Columns.Add("StartDate", typeof(DateTime));
+            productServicesTable.Columns.Add("EndDate", typeof(DateTime));
+            productServicesTable.Columns.Add("RequiredEmployees", typeof(int));
+
+            if (productServices != null && productServices.Any())
+            {
+                foreach (var service in productServices)
+                {
+                    productServicesTable.Rows.Add(service.ServiceId, service.ClientId, service.StartDate, service.EndDate, service.RequiredEmployees);
+                }
+            }
+
+            // Tham số cho Stored Procedure
+            var parameters = new[]
+            {
+        new SqlParameter("@ClientId", request.ClientId),
+        new SqlParameter("@CategoryId", request.CategoryId),
+        new SqlParameter("@ProductName", request.ProductName),
+        new SqlParameter("@Price", request.Price),
+        new SqlParameter("@InitialQuantity", request.InitialQuantity),
+        new SqlParameter("@Description", request.Description),
+        new SqlParameter("@Images", imagesTable)
+        {
+            SqlDbType = SqlDbType.Structured,
+            TypeName = "dbo.ImageTableType"
+        },
+        new SqlParameter("@ProductServices", productServicesTable)
+        {
+            SqlDbType = SqlDbType.Structured,
+            TypeName = "dbo.ProductServiceType"
+        }
+    };
+
+            // Gọi Stored Procedure
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddProductWithImagesAndServices @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images, @ProductServices",
+                parameters
+            );
+        }
+
+
+        public async Task AddProductWithImageAsync(Product product, List<ImageTable> images)
+        {
+            var imageDataTable = new DataTable();
+            imageDataTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var image in images)
+            {
+                imageDataTable.Rows.Add(image.ImageBase64);
+            }
+
+            var ClientId_Param = new SqlParameter("@ClientId", product.ClientId);
+            var CategoryId_Param = new SqlParameter("@CategoryId", product.CategoryId);
+            var productNameParam = new SqlParameter("@ProductName", product.ProductName);
+            var priceParam = new SqlParameter("@Price", product.Price);
+            var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
+            var descriptionParam = new SqlParameter("@Description", product.Description ?? (object)DBNull.Value);
+
+            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+            {
+                TypeName = "dbo.ImageTableType",
+                Value = imageDataTable
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddProductWithImages @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images",
+                ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
+            );
         }
     }
 }

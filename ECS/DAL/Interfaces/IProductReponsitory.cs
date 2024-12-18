@@ -16,5 +16,7 @@ namespace ECS.DAL.Interfaces
         Task ActiveProduct(Guid productId);
 
         Task<Client> GetClientByProductId(Guid productId);
+        Task AddProduct(CreateProductRequest request, string productServicesJson);
+
     }
 }

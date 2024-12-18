@@ -7,6 +7,7 @@ using ECS.DAL.Repositorys;
 using ECS.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using Newtonsoft.Json;
 using NuGet.Protocol.Core.Types;
 
 namespace ECS.Areas.Client.Controllers
@@ -76,23 +77,40 @@ namespace ECS.Areas.Client.Controllers
         }
         // POST: api/Product
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] CreateProductRequest request)
+        //public async Task<IActionResult> Create([FromForm] CreateProductRequest request)
+        //{
+        //    var images = new List<ImageTable>();
+
+        //    foreach (var imageFile in request.ImageFiles)
+        //    {
+        //        using (var memoryStream = new MemoryStream())
+        //        {
+        //            await imageFile.CopyToAsync(memoryStream);
+        //            string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+        //            images.Add(new ImageTable { ImageBase64 = imageBase64 });
+        //        }
+        //    }
+        //    var product = _mapper.Map<Product>(request);
+        //    await _productReponsitory.AddProductWithImageAsync(product, images);
+
+        //    return Ok(new { Message = "Product and images added successfully" });
+        //}
+        public async Task<IActionResult> AddProduct([FromForm] CreateProductRequest request, [FromForm] string productServicesJson)
         {
-            var images = new List<ImageTable>();
-
-            foreach (var imageFile in request.ImageFiles)
+            if (!ModelState.IsValid)
             {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await imageFile.CopyToAsync(memoryStream);
-                    string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
-                    images.Add(new ImageTable { ImageBase64 = imageBase64 });
-                }
+                return BadRequest(ModelState);
             }
-            var product = _mapper.Map<Product>(request);
-            await _productReponsitory.AddProductWithImageAsync(product, images);
 
-            return Ok(new { Message = "Product and images added successfully" });
+            try
+            {
+                await _productReponsitory.AddProduct(request, productServicesJson);
+                return Ok(new { Message = "Product added successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
