@@ -53,7 +53,7 @@ namespace ECS.DAL.Repositorys
             @OrderId OUTPUT",
                 new SqlParameter("@CallId", order.CallId),
                 new SqlParameter("@Orderer", order.Orderer),
-                new SqlParameter("@TotalAmount", order.TotalAmount), 
+                new SqlParameter("@TotalAmount", order.TotalAmount),
                 new SqlParameter("@Recipient_Name", order.RecipientName),
                 new SqlParameter("@Recipient_Phone", order.RecipientPhone),
                 new SqlParameter("@Recipient_Address", order.RecipientAddress),
@@ -65,6 +65,22 @@ namespace ECS.DAL.Repositorys
 
             foreach (var detail in orderDetails)
             {
+                var productPrice = await _context.product
+                    .Where(p => p.ProductId == detail.ProductId)
+                    .Select(p => p.Price)
+                    .FirstOrDefaultAsync();
+
+                if (productPrice == null || productPrice <= 0)
+                {
+                    throw new Exception($"Invalid price for product {detail.ProductId}");
+                }
+
+
+                detail.TotalPrice = detail.Quantity * (productPrice ?? 0);
+
+
+                order.TotalAmount += detail.TotalPrice;
+
                 var orderIdParam = new SqlParameter("@OrderId", newOrderId);
                 var productIdParam = new SqlParameter("@ProductId", detail.ProductId);
                 var quantityParam = new SqlParameter("@Quantity", detail.Quantity);
@@ -72,13 +88,19 @@ namespace ECS.DAL.Repositorys
 
                 await _context.Database.ExecuteSqlRawAsync(
                     @"EXEC dbo.AddOrderDetail 
-                @OrderId, 
-                @ProductId, 
-                @Quantity, 
-                @TotalPrice",
+            @OrderId, 
+            @ProductId, 
+            @Quantity, 
+            @TotalPrice",
                     orderIdParam, productIdParam, quantityParam, totalPriceParam
                 );
             }
+
+            await _context.Database.ExecuteSqlRawAsync(
+                @"UPDATE [Order] SET TotalAmount = @TotalAmount WHERE OrderId = @OrderId",
+                new SqlParameter("@TotalAmount", order.TotalAmount),
+                new SqlParameter("@OrderId", newOrderId)
+            );
         }
 
 
