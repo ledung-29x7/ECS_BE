@@ -38,6 +38,6 @@ namespace ECS
         public DbSet<EmployeeService> employeeService { get; set; }
         public DbSet<EmployeeWorkListDto> employeeWorkListDTOs { get; set;}
         public DbSet<EmployeeProductCategory> employeeProductCategories { get; set; }
-
+        public DbSet<CallStatus> callStatuses { get; set; }
     }
 }
