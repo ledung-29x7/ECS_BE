@@ -8,6 +8,5 @@
         public string RecipientName { get; set; }
         public string RecipientPhone { get; set; }
         public string RecipientAddress { get; set; }
-        public int OrderStatus { get; set; }
     }
 }

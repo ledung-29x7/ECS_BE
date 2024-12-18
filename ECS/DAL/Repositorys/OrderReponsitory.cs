@@ -49,7 +49,6 @@ namespace ECS.DAL.Repositorys
             @Recipient_Name, 
             @Recipient_Phone, 
             @Recipient_Address, 
-            @OrderStatus, 
             @OrderId OUTPUT",
                 new SqlParameter("@CallId", order.CallId),
                 new SqlParameter("@Orderer", order.Orderer),
@@ -57,7 +56,6 @@ namespace ECS.DAL.Repositorys
                 new SqlParameter("@Recipient_Name", order.RecipientName),
                 new SqlParameter("@Recipient_Phone", order.RecipientPhone),
                 new SqlParameter("@Recipient_Address", order.RecipientAddress),
-                new SqlParameter("@OrderStatus", order.OrderStatus),
                 orderIdOutput
             );
 
