@@ -1,4 +1,5 @@
-﻿using ECS.Areas.Client.Models;
+﻿using ECS.Areas.Authen.Models;
+using ECS.Areas.Client.Models;
 using ECS.DAL.Interfaces;
 using ECS.Dtos;
 using Microsoft.AspNetCore.Http;
@@ -58,6 +59,18 @@ namespace ECS.Areas.Authen.Controllers
                 return NotFound();
             }
             return Ok(employee);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, Employee employee)
+        {
+            if (id != employee.EmployeeId)
+            {
+                return BadRequest();
+            }
+
+            await _employeeRepository.UpdateEmployee(employee);
+            return NoContent();
         }
     }
 
