@@ -94,6 +94,8 @@ namespace ECS.DAL.Repositorys
             var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
             var LastName_param = new SqlParameter("@LastName", employee.LastName);
             var email_param = new SqlParameter("@Email", employee.Email);
+            var DepartmentID_param = new SqlParameter("@DepartmentID", employee.DepartmentID);
+            var RoleId_param = new SqlParameter("@RoleId", employee.RoleId);
             var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
             var Password_param = new SqlParameter("@Password", employee.Password);
             var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
@@ -102,8 +104,8 @@ namespace ECS.DAL.Repositorys
                 Value = imageDataTable
             };
             await _context.Database.ExecuteSqlRawAsync(
-                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email, @PhoneNumber, @Password, @Images",
-                FirstName_param, LastName_param, email_param, Phone_number_param, Password_param, imagesParam
+                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email,@DepartmentID, @RoleId, @PhoneNumber, @Password, @Images",
+                FirstName_param, LastName_param, email_param,DepartmentID_param, RoleId_param, Phone_number_param, Password_param, imagesParam
             );
         }
 
