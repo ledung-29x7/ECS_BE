@@ -115,6 +115,53 @@ namespace ECS.Areas.Admin.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<Models.Client>>> GetAllClient()
+        {
+            var clients = await _clientRepository.GetAllClient();
+            return Ok(clients);
+        }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Role>> GetClientById(Guid id)
+        {
+            var client = await _clientRepository.GetClientById(id);
+            if (client == null)
+            {
+                return NotFound($"Client with ID {id} not found.");
+            }
+            return Ok(client);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateClient(Guid id, [FromBody] Models.Client client)
+        {
+            if (id != client.ClientId)
+            {
+                return BadRequest("Role ID mismatch.");
+            }
+
+            var existingRole = await _clientRepository.GetClientById(id);
+            if (existingRole == null)
+            {
+                return NotFound($"Role with ID {id} not found.");
+            }
+
+            await _clientRepository.UpdateClient(client);
+            return Ok("Update Client Success");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRole(Guid id)
+        {
+            var role = await _clientRepository.GetClientById(id);
+            if (role == null)
+            {
+                return NotFound($"Role with ID {id} not found.");
+            }
+
+            await _clientRepository.DeleteClient(id);
+            return Ok("Delete Client Success");
+        }
+
 
     }
 }
