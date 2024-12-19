@@ -1,7 +1,9 @@
-﻿using ECS.DAL.Interfaces;
+﻿using ECS.Areas.Client.Models;
+using ECS.DAL.Interfaces;
 using ECS.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol.Core.Types;
 
 namespace ECS.Areas.Authen.Controllers
 {
@@ -45,6 +47,17 @@ namespace ECS.Areas.Authen.Controllers
             {
                 return StatusCode(500, new { Message = "An error occurred while fetching employees.", Details = ex.Message });
             }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProductStatus>> GetById(Guid id)
+        {
+            var employee = await _employeeRepository.GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+            return Ok(employee);
         }
     }
 

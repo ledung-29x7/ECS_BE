@@ -7,6 +7,7 @@ namespace ECS.DAL.Interfaces
     public interface IEmployeeRepository
     {
         Task RegisterEmployee(Employee employee);
+        Task<Employee> GetEmployeeById(Guid employeeId);
         Task<Employee> GetEmployeeByEmail(string email);
         Task DeleteEmployee(Guid employeeid);
         Task UpdateEmployee(Employee employee);

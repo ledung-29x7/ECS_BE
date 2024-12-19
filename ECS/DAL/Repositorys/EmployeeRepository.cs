@@ -212,5 +212,14 @@ namespace ECS.DAL.Repositorys
             var employees = await Task.FromResult(_context.employeeAvailables.FromSqlRaw("EXECUTE dbo.GetEmployeeAvailables @ProductId, @RequiredEmployees", productId_Param, RequiredEmployees_param).ToList());
             return employees;
         }
+
+        public async Task<Employee> GetEmployeeById(Guid employeeId)
+        {
+            var employeeId_Param = new SqlParameter("@EmployeeId", employeeId);
+            var employee  = await _context.employees
+               .FromSqlRaw("EXECUTE dbo.GetEmployeeById @EmployeeId", employeeId_Param)
+               .ToListAsync();
+            return employee.FirstOrDefault();
+        }
     }
 }
