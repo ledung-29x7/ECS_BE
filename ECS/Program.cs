@@ -37,6 +37,8 @@ builder.Services.AddScoped<IOrderDetailReponsitory , OrderDetailReponsitory>();
 builder.Services.AddScoped<IProductSalesRepository, ProductSalesRepository>();
 builder.Services.AddScoped<IEmployeeProductCategoryRepository, EmployeeProductCategoryRepository>();
 builder.Services.AddScoped<ICallStatusRepository, CallStatusRepository>();
+builder.Services.AddScoped<IProductStatusRepository, ProductStatusRepository>();
+
 
 
 builder.Services.AddAutoMapper(typeof(AuthenticationProfile));

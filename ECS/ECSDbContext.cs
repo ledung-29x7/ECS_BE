@@ -19,6 +19,7 @@ namespace ECS
             modelBuilder.Entity<ProductWithImagesDTO>().HasNoKey();
             modelBuilder.Entity<EmployeeWithImagesDTO>().HasNoKey();
             modelBuilder.Entity<EmployeeWorkListDto>().HasNoKey();
+            modelBuilder.Entity<EmployeeAvailable>().HasNoKey();
 
         }
 
@@ -39,5 +40,7 @@ namespace ECS
         public DbSet<EmployeeWorkListDto> employeeWorkListDTOs { get; set;}
         public DbSet<EmployeeProductCategory> employeeProductCategories { get; set; }
         public DbSet<CallStatus> callStatuses { get; set; }
+        public DbSet<EmployeeAvailable> employeeAvailables { get; set; }
+        public DbSet<ProductStatus> productStatuses { get; set; }
     }
 }

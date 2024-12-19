@@ -20,5 +20,7 @@ namespace ECS.DAL.Interfaces
         Task ChangePassword(Guid employeeId, string oldPasswordHash, string newPasswordHash);
         Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId);
 
+        Task<List<EmployeeAvailable>> GetEmployeeAvailables(Guid productId, int RequiredEmployees);
+
     }
 }

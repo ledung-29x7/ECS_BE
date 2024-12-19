@@ -6,6 +6,7 @@ using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
 using ECS.Dtos;
 using ECS.Dtos;
+using Microsoft.CodeAnalysis;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -202,6 +203,14 @@ namespace ECS.DAL.Repositorys
                 .ToListAsync();
 
             return employeeWorkList;
+        }
+
+        public async Task<List<EmployeeAvailable>> GetEmployeeAvailables(Guid productId, int RequiredEmployees)
+        {
+            var productId_Param = new SqlParameter("@ProductId", productId);
+            var RequiredEmployees_param = new SqlParameter("@RequiredEmployees", RequiredEmployees);
+            var employees = await Task.FromResult(_context.employeeAvailables.FromSqlRaw("EXECUTE dbo.GetEmployeeAvailables @ProductId, @RequiredEmployees", productId_Param, RequiredEmployees_param).ToList());
+            return employees;
         }
     }
 }
