@@ -122,15 +122,29 @@ namespace ECS.Areas.Client.Controllers
         }
 
         [HttpGet("client/{clientId}")]
-        public async Task<IActionResult> GetProductsByClientId(Guid clientId)
+        public async Task<IActionResult> GetProductsByClientId(
+            Guid clientId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] string searchTerm = null,
+            [FromQuery] bool? isActive = null)
         {
-            var products = await _productReponsitory.GetProductsByClientIdAsync(clientId);
+            var (products, totalRecords, totalPages) = await _productReponsitory.GetProductsByClientIdAsync(clientId, pageNumber, searchTerm, isActive);
+
             if (products == null || !products.Any())
             {
                 return NotFound();
             }
-            return Ok(products);
+
+            var response = new
+            {
+                Products = products,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            };
+
+            return Ok(response);
         }
+
         [HttpGet("GetProductSalesAndStock")]
         public async Task<IActionResult> GetProductSalesAndStock([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
@@ -146,10 +160,17 @@ namespace ECS.Areas.Client.Controllers
         }
 
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] string searchTerm = null, [FromQuery] decimal? priceFilter = null)
+        public async Task<IActionResult> GetProducts(
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] string searchTerm = null,
+    [FromQuery] decimal? minPrice = null,
+    [FromQuery] decimal? maxPrice = null,
+    [FromQuery] bool? isActive = null)
         {
-            var (products, totalRecords, totalPages) = await _productReponsitory.GetAllProductsAsync(pageNumber, searchTerm, priceFilter);
+            // Gọi repository với các tham số mới
+            var (products, totalRecords, totalPages) = await _productReponsitory.GetAllProductsAsync(pageNumber, searchTerm, minPrice, maxPrice, isActive);
 
+            // Tạo response object
             var response = new
             {
                 Products = products,
@@ -157,8 +178,10 @@ namespace ECS.Areas.Client.Controllers
                 TotalPages = totalPages
             };
 
+            // Trả về kết quả
             return Ok(response);
         }
+
 
 
     }
