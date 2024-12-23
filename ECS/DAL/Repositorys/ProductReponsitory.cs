@@ -362,5 +362,63 @@ namespace ECS.DAL.Repositorys
                 ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
             );
         }
+
+        public async Task<(IEnumerable<ProductDto> Products, int TotalRecords, int TotalPages)> GetAllProductsAsync(
+    int pageNumber,
+    string searchTerm = null,
+    decimal? priceFilter = null)
+        {
+            var productDictionary = new Dictionary<Guid, ProductDto>();
+
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+            var priceFilterParam = new SqlParameter("@PriceFilter", priceFilter ?? (object)DBNull.Value);
+
+            var results = await _context.Set<RawProductResult>()
+                .FromSqlRaw(
+                    "EXEC [dbo].[GetAllProduct] @PageNumber, @SearchTerm, @PriceFilter",
+                    pageNumberParam,
+                    searchTermParam,
+                    priceFilterParam
+                )
+                .ToListAsync();
+
+            int totalRecords = results.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = results.FirstOrDefault()?.TotalPages ?? 0;
+
+            foreach (var result in results)
+            {
+                if (!productDictionary.TryGetValue(result.ProductId, out var product))
+                {
+                    product = new ProductDto
+                    {
+                        ProductId = result.ProductId,
+                        ClientId = result.ClientId,
+                        CategoryId = result.CategoryId,
+                        ProductName = result.ProductName,
+                        Price = result.Price,
+                        InitialQuantity = result.InitialQuantity,
+                        Description = result.Description,
+                        IsActive = result.IsActive,
+                        Status = result.Status,
+                        CreatedAt = result.CreatedAt,
+                        Images = new List<ImageTable>()
+                    };
+
+                    productDictionary.Add(result.ProductId, product);
+                }
+
+                if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+                {
+                    product.Images.Add(new ImageTable
+                    {
+                        ImageId = result.ImageId.Value,
+                        ImageBase64 = result.ImageBase64
+                    });
+                }
+            }
+
+            return (productDictionary.Values, totalRecords, totalPages);
+        }
     }
 }

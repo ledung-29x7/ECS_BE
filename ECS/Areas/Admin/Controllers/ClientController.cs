@@ -115,12 +115,27 @@ namespace ECS.Areas.Admin.Controllers
             }
         }
 
+        //[HttpGet]
+        //public async Task<ActionResult<List<Models.Client>>> GetAllClient()
+        //{
+        //    var clients = await _clientRepository.GetAllClient();
+        //    return Ok(clients);
+        //}
+
         [HttpGet]
-        public async Task<ActionResult<List<Models.Client>>> GetAllClient()
+        public async Task<IActionResult> GetClients([FromQuery] int pageNumber = 1, [FromQuery] string searchTerm = null)
         {
-            var clients = await _clientRepository.GetAllClient();
-            return Ok(clients);
+            var (clients, totalRecords, totalPages) = await _clientRepository.GetAllClientAndSearchAsync(pageNumber, searchTerm);
+
+            return Ok(new
+            {
+                Clients = clients,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            });
         }
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Role>> GetClientById(Guid id)
         {

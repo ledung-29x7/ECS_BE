@@ -72,6 +72,34 @@ namespace ECS.Areas.Authen.Controllers
             await _employeeRepository.UpdateEmployee(employee);
             return NoContent();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployees([FromQuery] int pageNumber = 1, [FromQuery] string searchTerm = null)
+        {
+            var (employees, totalRecords, totalPages) = await _employeeRepository.GetAllEmployeeAndSearchAsync(pageNumber, searchTerm);
+
+            return Ok(new
+            {
+                Employees = employees,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            });
+        }
+
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAllEmployees(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] string searchTerm = null)
+        {
+            var result = await _employeeRepository.GetAllEmployeesAsync(pageNumber, searchTerm);
+
+            return Ok(new
+            {
+                Employees = result.Employees,
+                TotalRecords = result.TotalRecords,
+                TotalPages = result.TotalPages
+            });
+        }
     }
 
 }

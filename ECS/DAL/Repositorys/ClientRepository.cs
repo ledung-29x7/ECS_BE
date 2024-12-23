@@ -1,5 +1,6 @@
 ﻿using ECS.Areas.Admin.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +47,22 @@ namespace ECS.DAL.Repositorys
         public async Task<List<Client>> GetAllClient()
         {
             return await Task.FromResult(_context.clients.FromSqlRaw("EXECUTE dbo.GetAllClient").ToList());
+        }
+
+        public async Task<(IEnumerable<ClientDto> Clients, int TotalRecords, int TotalPages)> GetAllClientAndSearchAsync(int pageNumber, string searchTerm)
+        {
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+
+            var result = await _context.clientDtos
+                .FromSqlInterpolated($"EXEC GetAllClientAndSearch @PageNumber = {pageNumberParam}, @SearchTerm = {searchTermParam}")
+                .ToListAsync();
+
+            // Extract metadata from the first item (assuming all items have the same TotalRecords and TotalPages).
+            int totalRecords = result.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = result.FirstOrDefault()?.TotalPages ?? 0;
+
+            return (result, totalRecords, totalPages);
         }
 
         public async Task<Client> GetClientByEmail(string email)

@@ -20,6 +20,11 @@ namespace ECS
             modelBuilder.Entity<EmployeeWithImagesDTO>().HasNoKey();
             modelBuilder.Entity<EmployeeWorkListDto>().HasNoKey();
             modelBuilder.Entity<EmployeeAvailable>().HasNoKey();
+            modelBuilder.Entity<ClientDto>().HasNoKey();
+            modelBuilder.Entity<EmployeeDto>().HasNoKey();
+            modelBuilder.Entity<RawEmployeeResult>().HasNoKey();
+            modelBuilder.Entity<RawProductResult>().HasNoKey();
+
 
         }
 
@@ -42,5 +47,7 @@ namespace ECS
         public DbSet<CallStatus> callStatuses { get; set; }
         public DbSet<EmployeeAvailable> employeeAvailables { get; set; }
         public DbSet<ProductStatus> productStatuses { get; set; }
+        public DbSet<ClientDto> clientDtos { get; set; }
+        public DbSet<EmployeeDto> employeeDtos { get; set; }
     }
 }

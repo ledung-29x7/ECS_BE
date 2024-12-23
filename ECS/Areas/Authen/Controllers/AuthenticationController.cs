@@ -128,11 +128,11 @@ namespace ECS.Areas.Authen.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllEmployees()
-        {
-            var employees = await _employeeRepository.GetAllEmployeesAsync();
-            return Ok(employees);
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAllEmployees()
+        //{
+        //    var employees = await _employeeRepository.GetAllEmployeesAsync();
+        //    return Ok(employees);
+        //}
     }
 }

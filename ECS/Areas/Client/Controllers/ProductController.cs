@@ -145,6 +145,21 @@ namespace ECS.Areas.Client.Controllers
             }
         }
 
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetProducts([FromQuery] int pageNumber = 1, [FromQuery] string searchTerm = null, [FromQuery] decimal? priceFilter = null)
+        {
+            var (products, totalRecords, totalPages) = await _productReponsitory.GetAllProductsAsync(pageNumber, searchTerm, priceFilter);
+
+            var response = new
+            {
+                Products = products,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            };
+
+            return Ok(response);
+        }
+
 
     }
 }

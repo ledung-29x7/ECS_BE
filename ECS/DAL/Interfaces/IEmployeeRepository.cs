@@ -23,5 +23,10 @@ namespace ECS.DAL.Interfaces
 
         Task<List<EmployeeAvailable>> GetEmployeeAvailables(Guid productId, int RequiredEmployees);
 
+        Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeeAndSearchAsync(int pageNumber, string searchTerm);
+        Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeesAsync(
+                int pageNumber,
+                string searchTerm);
+
     }
 }

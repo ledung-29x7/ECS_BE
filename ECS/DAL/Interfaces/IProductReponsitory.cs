@@ -17,6 +17,10 @@ namespace ECS.DAL.Interfaces
 
         Task<Client> GetClientByProductId(Guid productId);
         Task AddProduct(CreateProductRequest request, string productServicesJson);
+        Task<(IEnumerable<ProductDto> Products, int TotalRecords, int TotalPages)> GetAllProductsAsync(
+    int pageNumber,
+    string searchTerm = null,
+    decimal? priceFilter = null);
 
     }
 }

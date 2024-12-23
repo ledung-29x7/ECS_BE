@@ -1,5 +1,6 @@
 ﻿using ECS.Areas.Admin.Models;
 using ECS.Areas.Authen.Models;
+using ECS.Dtos;
 
 namespace ECS.DAL.Interfaces
 {
@@ -12,5 +13,6 @@ namespace ECS.DAL.Interfaces
         Task DeleteClient(Guid clientId);
         Task UpdateClient(Client client);
         Task ChangePassword(Guid clientId, string oldPasswordHash, string newPasswordHash);
+        Task<(IEnumerable<ClientDto> Clients, int TotalRecords, int TotalPages)> GetAllClientAndSearchAsync(int pageNumber, string searchTerm);
     }
 }
