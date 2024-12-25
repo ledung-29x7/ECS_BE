@@ -49,5 +49,6 @@ namespace ECS
         public DbSet<ProductStatus> productStatuses { get; set; }
         public DbSet<ClientDto> clientDtos { get; set; }
         public DbSet<EmployeeDto> employeeDtos { get; set; }
+        public DbSet<Contact> contacts { get; set; }
     }
 }
