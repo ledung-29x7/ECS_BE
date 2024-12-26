@@ -18,6 +18,14 @@ namespace ECS
             modelBuilder.Entity<ProductCategory>().HasNoKey();
             modelBuilder.Entity<ProductWithImagesDTO>().HasNoKey();
             modelBuilder.Entity<EmployeeWithImagesDTO>().HasNoKey();
+            modelBuilder.Entity<EmployeeWorkListDto>().HasNoKey();
+            modelBuilder.Entity<EmployeeAvailable>().HasNoKey();
+            modelBuilder.Entity<ClientDto>().HasNoKey();
+            modelBuilder.Entity<EmployeeDto>().HasNoKey();
+            modelBuilder.Entity<RawEmployeeResult>().HasNoKey();
+            modelBuilder.Entity<RawProductResult>().HasNoKey();
+
+
         }
 
         public DbSet<Role> roles { get; set; }
@@ -33,5 +41,14 @@ namespace ECS
         public DbSet<Order> order { get; set; }
         public DbSet<OrderDetail> orderDetails { get; set; }
         public DbSet<ProductWithImagesDTO> productWithImagesDTOs { get; set; }
+        public DbSet<EmployeeService> employeeService { get; set; }
+        public DbSet<EmployeeWorkListDto> employeeWorkListDTOs { get; set;}
+        public DbSet<EmployeeProductCategory> employeeProductCategories { get; set; }
+        public DbSet<CallStatus> callStatuses { get; set; }
+        public DbSet<EmployeeAvailable> employeeAvailables { get; set; }
+        public DbSet<ProductStatus> productStatuses { get; set; }
+        public DbSet<ClientDto> clientDtos { get; set; }
+        public DbSet<EmployeeDto> employeeDtos { get; set; }
+        public DbSet<Contact> contacts { get; set; }
     }
 }

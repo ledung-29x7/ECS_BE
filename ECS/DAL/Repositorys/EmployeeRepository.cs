@@ -5,6 +5,8 @@ using ECS.Areas.Client.Models;
 using ECS.Areas.Units.Models;
 using ECS.DAL.Interfaces;
 using ECS.Dtos;
+using ECS.Dtos;
+using Microsoft.CodeAnalysis;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -92,6 +94,8 @@ namespace ECS.DAL.Repositorys
             var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
             var LastName_param = new SqlParameter("@LastName", employee.LastName);
             var email_param = new SqlParameter("@Email", employee.Email);
+            var DepartmentID_param = new SqlParameter("@DepartmentID", employee.DepartmentID);
+            var RoleId_param = new SqlParameter("@RoleId", employee.RoleId);
             var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
             var Password_param = new SqlParameter("@Password", employee.Password);
             var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
@@ -100,8 +104,8 @@ namespace ECS.DAL.Repositorys
                 Value = imageDataTable
             };
             await _context.Database.ExecuteSqlRawAsync(
-                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email, @PhoneNumber, @Password, @Images",
-                FirstName_param, LastName_param, email_param, Phone_number_param, Password_param, imagesParam
+                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email,@DepartmentID, @RoleId, @PhoneNumber, @Password, @Images",
+                FirstName_param, LastName_param, email_param,DepartmentID_param, RoleId_param, Phone_number_param, Password_param, imagesParam
             );
         }
 
@@ -130,6 +134,7 @@ namespace ECS.DAL.Repositorys
                         {
                             var employee = new EmployeeWithImagesDTO
                             {
+                                EmployeeId = reader.IsDBNull(reader.GetOrdinal("EmployeeId")) ? Guid.Empty : reader.GetGuid(reader.GetOrdinal("EmployeeId")),
                                 FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),
                                 LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
                                 Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email")),
@@ -191,5 +196,124 @@ namespace ECS.DAL.Repositorys
 
             await _context.Database.ExecuteSqlRawAsync("EXEC dbo.ChangePasswordEmployee @EmployeeId, @NewPasswordHash", id_param, newPasswordHash_param);
         }
+        public async Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId)
+        {
+            var employeeWorkList = await _context.employeeWorkListDTOs
+                .FromSqlInterpolated($@"
+                    EXEC GetEmployeeWorkListById @EmployeeId = {employeeId}
+                ")
+                .ToListAsync();
+
+            return employeeWorkList;
+        }
+
+        public async Task<List<EmployeeAvailable>> GetEmployeeAvailables(Guid productId, int RequiredEmployees)
+        {
+            var productId_Param = new SqlParameter("@ProductId", productId);
+            var RequiredEmployees_param = new SqlParameter("@RequiredEmployees", RequiredEmployees);
+            var employees = await Task.FromResult(_context.employeeAvailables.FromSqlRaw("EXECUTE dbo.GetAvailableEmployees @ProductId, @RequiredEmployees", productId_Param, RequiredEmployees_param).ToList());
+            return employees;
+        }
+
+        public async Task<Employee> GetEmployeeById(Guid employeeId)
+        {
+            var employeeId_Param = new SqlParameter("@EmployeeId", employeeId);
+            var employee  = await _context.employees
+               .FromSqlRaw("EXECUTE dbo.GetEmployeeById @EmployeeId", employeeId_Param)
+               .ToListAsync();
+            return employee.FirstOrDefault();
+        }
+
+        public async Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeeAndSearchAsync(int pageNumber, string searchTerm)
+        {
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+
+            var result = await _context.employeeDtos
+                .FromSqlInterpolated($"EXEC GetAllEmployee @PageNumber = {pageNumberParam}, @SearchTerm = {searchTermParam}")
+                .ToListAsync();
+
+            // Extract metadata from the first item (assuming all items have the same TotalRecords and TotalPages).
+            int totalRecords = result.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = result.FirstOrDefault()?.TotalPages ?? 0;
+
+            return (result, totalRecords, totalPages);
+        }
+
+        public async Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeesAsync(
+   int pageNumber,
+   string searchTerm)
+        {
+            var employeeDictionary = new Dictionary<Guid, EmployeeDto>();
+
+            // Define output parameters for TotalRecords and TotalPages
+            var totalRecordsParam = new SqlParameter
+            {
+                ParameterName = "@TotalRecords",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var totalPagesParam = new SqlParameter
+            {
+                ParameterName = "@TotalPages",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            // Input parameters
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+
+            // Execute stored procedure
+            var results = await _context.Set<RawEmployeeResult>()
+                .FromSqlRaw(
+                    "EXEC [dbo].[GetAllEmployee] @PageNumber, @SearchTerm, @TotalRecords OUTPUT, @TotalPages OUTPUT",
+                    pageNumberParam,
+                    searchTermParam,
+                    totalRecordsParam,
+                    totalPagesParam
+                )
+                .ToListAsync();
+
+            // Process the raw results into the dictionary
+            foreach (var result in results)
+            {
+                if (!employeeDictionary.TryGetValue(result.EmployeeId, out var employee))
+                {
+                    employee = new EmployeeDto
+                    {
+                        EmployeeId = result.EmployeeId,
+                        FirstName = result.FirstName,
+                        LastName = result.LastName,
+                        Email = result.Email,
+                        PhoneNumber = result.PhoneNumber,
+                        RoleId = result.RoleId,
+                        DepartmentID = result.DepartmentID,
+                        Images = new List<ImageTable>()
+                    };
+
+                    employeeDictionary.Add(result.EmployeeId, employee);
+                }
+
+                if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+                {
+                    employee.Images.Add(new ImageTable
+                    {
+                        ImageId = result.ImageId.Value,
+                        ImageBase64 = result.ImageBase64
+                    });
+                }
+            }
+
+            // Retrieve output parameter values
+            int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+            int totalPages = (int)(totalPagesParam.Value ?? 0);
+
+            return (employeeDictionary.Values, totalRecords, totalPages);
+        }
+
     }
+
 }
+

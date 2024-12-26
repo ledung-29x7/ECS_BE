@@ -1,5 +1,7 @@
-﻿using ECS.Areas.EmployeeService.Models;
+﻿using System.Data;
+using ECS.Areas.EmployeeService.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +32,77 @@ namespace ECS.DAL.Repositorys
 
             return result.FirstOrDefault();
         }
+        public async Task AddOrderWithDetails(OrderDto order, List<OrderDetailDto> orderDetails)
+        {
+            order.TotalAmount = orderDetails.Sum(detail => detail.Quantity * detail.TotalPrice);
+
+            var orderIdOutput = new SqlParameter("@OrderId", SqlDbType.Int)
+            {
+                Direction = ParameterDirection.Output
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                @"EXEC dbo.AddOrder 
+            @CallId, 
+            @Orderer, 
+            @TotalAmount, 
+            @Recipient_Name, 
+            @Recipient_Phone, 
+            @Recipient_Address, 
+            @OrderId OUTPUT",
+                new SqlParameter("@CallId", order.CallId),
+                new SqlParameter("@Orderer", order.Orderer),
+                new SqlParameter("@TotalAmount", order.TotalAmount),
+                new SqlParameter("@Recipient_Name", order.RecipientName),
+                new SqlParameter("@Recipient_Phone", order.RecipientPhone),
+                new SqlParameter("@Recipient_Address", order.RecipientAddress),
+                orderIdOutput
+            );
+
+            int newOrderId = (int)orderIdOutput.Value;
+
+            foreach (var detail in orderDetails)
+            {
+                var productPrice = await _context.product
+                    .Where(p => p.ProductId == detail.ProductId)
+                    .Select(p => p.Price)
+                    .FirstOrDefaultAsync();
+
+                if (productPrice == null || productPrice <= 0)
+                {
+                    throw new Exception($"Invalid price for product {detail.ProductId}");
+                }
+
+
+                detail.TotalPrice = detail.Quantity * (productPrice ?? 0);
+
+
+                order.TotalAmount += detail.TotalPrice;
+
+                var orderIdParam = new SqlParameter("@OrderId", newOrderId);
+                var productIdParam = new SqlParameter("@ProductId", detail.ProductId);
+                var quantityParam = new SqlParameter("@Quantity", detail.Quantity);
+                var totalPriceParam = new SqlParameter("@TotalPrice", detail.TotalPrice);
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    @"EXEC dbo.AddOrderDetail 
+            @OrderId, 
+            @ProductId, 
+            @Quantity, 
+            @TotalPrice",
+                    orderIdParam, productIdParam, quantityParam, totalPriceParam
+                );
+            }
+
+            await _context.Database.ExecuteSqlRawAsync(
+                @"UPDATE [Order] SET TotalAmount = @TotalAmount WHERE OrderId = @OrderId",
+                new SqlParameter("@TotalAmount", order.TotalAmount),
+                new SqlParameter("@OrderId", newOrderId)
+            );
+        }
+
+
+
 
         public async Task AddOrder(Order order)
         {

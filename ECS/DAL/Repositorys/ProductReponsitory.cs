@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Text.Json;
 
 namespace ECS.DAL.Repositorys
 {
@@ -23,34 +24,7 @@ namespace ECS.DAL.Repositorys
         }
 
 
-        public async Task AddProductWithImageAsync(Product product, List<ImageTable> images)
-        {
-            var imageDataTable = new DataTable();
-            imageDataTable.Columns.Add("ImageBase64", typeof(string));
 
-            foreach (var image in images)
-            {
-                imageDataTable.Rows.Add(image.ImageBase64);
-            }
-
-            var ClientId_Param = new SqlParameter("@ClientId", product.ClientId);
-            var CategoryId_Param = new SqlParameter("@CategoryId", product.CategoryId);
-            var productNameParam = new SqlParameter("@ProductName", product.ProductName);
-            var priceParam = new SqlParameter("@Price", product.Price);
-            var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
-            var descriptionParam = new SqlParameter("@Description", product.Description ?? (object)DBNull.Value);
-
-            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
-            {
-                TypeName = "dbo.ImageTableType",
-                Value = imageDataTable
-            };
-
-            await _context.Database.ExecuteSqlRawAsync(
-                "EXEC AddProductWithImages @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images",
-                ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
-            );
-        }
 
         public async Task DeleteProductAsync(Guid productId)
         {
@@ -202,75 +176,73 @@ namespace ECS.DAL.Repositorys
             await _context.Database.ExecuteSqlRawAsync("EXEC UpdateProduct @ProductId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description", parameters);
         }
 
-        public async Task<List<ProductWithImagesDTO>> GetProductsByClientIdAsync(Guid clientId)
+        public async Task<(IEnumerable<ProductDto> Products, int TotalRecords, int TotalPages)> GetProductsByClientIdAsync(
+                Guid clientId,
+                int pageNumber = 1,
+                string searchTerm = null,
+                bool? isActive = null)
         {
-            var products = new List<ProductWithImagesDTO>();
-            var connection = _context.Database.GetDbConnection();
+            var productDictionary = new Dictionary<Guid, ProductDto>();
 
-            using (var command = connection.CreateCommand())
+            // Tạo các tham số cho stored procedure
+            var clientIdParam = new SqlParameter("@ClientId", clientId);
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+            var isActiveParam = new SqlParameter("@IsActive", isActive.HasValue ? (object)isActive.Value : DBNull.Value);
+
+            // Gọi stored procedure
+            var results = await _context.Set<RawProductResult>()
+                .FromSqlRaw(
+                    "EXEC [dbo].[GetProductsByClientId] @ClientId, @PageNumber, @SearchTerm, @IsActive",
+                    clientIdParam,
+                    pageNumberParam,
+                    searchTermParam,
+                    isActiveParam
+                )
+                .ToListAsync();
+
+            // Tổng số bản ghi và tổng số trang
+            int totalRecords = results.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = results.FirstOrDefault()?.TotalPages ?? 0;
+
+            // Xử lý kết quả để tạo danh sách ProductDto
+            foreach (var result in results)
             {
-                command.CommandText = "GetProductsByClientId";
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.Add(new SqlParameter("@ClientId", clientId));
-
-                await connection.OpenAsync();
-                using (var reader = await command.ExecuteReaderAsync())
+                if (!productDictionary.TryGetValue(result.ProductId, out var product))
                 {
-                    var productDictionary = new Dictionary<Guid, ProductWithImagesDTO>();
-
-                    // Đọc thông tin sản phẩm
-                    while (await reader.ReadAsync())
+                    product = new ProductDto
                     {
-                        var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
+                        ProductId = result.ProductId,
+                        ClientId = result.ClientId,
+                        CategoryId = result.CategoryId,
+                        ProductName = result.ProductName,
+                        Price = result.Price,
+                        InitialQuantity = result.InitialQuantity,
+                        Description = result.Description,
+                        IsActive = result.IsActive,
+                        Status = result.Status,
+                        CreatedAt = result.CreatedAt,
+                        Images = new List<ImageTable>()
+                    };
 
-                        if (!productDictionary.ContainsKey(productId))
-                        {
-                            var product = new Product
-                            {
-                                ProductId = productId,
-                                ClientId = reader.GetGuid(reader.GetOrdinal("ClientId")),
-                                CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
-                                ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
-                                Price = reader.GetDecimal(reader.GetOrdinal("Price")),
-                                InitialQuantity = reader.GetInt32(reader.GetOrdinal("InitialQuantity")),
-                                Description = reader.GetString(reader.GetOrdinal("Description")),
-                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                                Status = reader.GetInt32(reader.GetOrdinal("Status"))
-                            };
+                    productDictionary.Add(result.ProductId, product);
+                }
 
-                            var productDTO = _mapper.Map<ProductWithImagesDTO>(product);
-                            productDTO.Images = new List<ImageTable>();
-
-                            productDictionary.Add(productId, productDTO);
-                        }
-                    }
-
-                    // Đọc thông tin ảnh
-                    if (await reader.NextResultAsync())
+                // Thêm hình ảnh nếu có
+                if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+                {
+                    product.Images.Add(new ImageTable
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            var productId = reader.GetGuid(reader.GetOrdinal("ProductId"));
-                            var image = new ImageTable
-                            {
-                                ImageId = reader.GetInt32(reader.GetOrdinal("ImageId")),
-                                ImageBase64 = reader.GetString(reader.GetOrdinal("ImageBase64"))
-                            };
-
-                            if (productDictionary.ContainsKey(productId))
-                            {
-                                var imageDTO = _mapper.Map<ImageTable>(image);
-                                productDictionary[productId].Images.Add(imageDTO);
-                            }
-                        }
-                    }
-
-                    products = productDictionary.Values.ToList();
+                        ImageId = result.ImageId.Value,
+                        ImageBase64 = result.ImageBase64
+                    });
                 }
             }
 
-            return products;
+            // Trả về kết quả
+            return (productDictionary.Values, totalRecords, totalPages);
         }
+
 
         public async Task ActiveProduct(Guid productId)
         {
@@ -285,6 +257,174 @@ namespace ECS.DAL.Repositorys
               .FromSqlRaw("EXECUTE dbo.GetClientByProductId @ProductId", ProductId_Param)
               .ToListAsync();
             return clients.FirstOrDefault();
+        }
+
+        public async Task AddProduct(CreateProductRequest request, string productServicesJson)
+        {
+            // Deserialize ProductServices từ chuỗi JSON
+            var productServices = new List<ProductServiceRequest>();
+            if (!string.IsNullOrWhiteSpace(productServicesJson))
+            {
+                try
+                {
+                    productServices = JsonSerializer.Deserialize<List<ProductServiceRequest>>(productServicesJson);
+                }
+                catch (JsonException ex)
+                {
+                    throw new ArgumentException("Invalid ProductServices JSON format", ex);
+                }
+            }
+
+            // Tạo DataTable cho Images
+            var imagesTable = new DataTable();
+            imagesTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var imageFile in request.ImageFiles)
+            {
+                using var memoryStream = new MemoryStream();
+                await imageFile.CopyToAsync(memoryStream);
+                var imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+                imagesTable.Rows.Add(imageBase64);
+            }
+
+            // Tạo DataTable cho ProductServices
+            var productServicesTable = new DataTable();
+            productServicesTable.Columns.Add("ServiceId", typeof(int));
+            productServicesTable.Columns.Add("ClientId", typeof(Guid));
+            productServicesTable.Columns.Add("StartDate", typeof(DateTime));
+            productServicesTable.Columns.Add("EndDate", typeof(DateTime));
+            productServicesTable.Columns.Add("RequiredEmployees", typeof(int));
+
+            if (productServices != null && productServices.Any())
+            {
+                foreach (var service in productServices)
+                {
+                    productServicesTable.Rows.Add(service.ServiceId, service.ClientId, service.StartDate, service.EndDate, service.RequiredEmployees);
+                }
+            }
+
+            // Tham số cho Stored Procedure
+            var parameters = new[]
+            {
+        new SqlParameter("@ClientId", request.ClientId),
+        new SqlParameter("@CategoryId", request.CategoryId),
+        new SqlParameter("@ProductName", request.ProductName),
+        new SqlParameter("@Price", request.Price),
+        new SqlParameter("@InitialQuantity", request.InitialQuantity),
+        new SqlParameter("@Description", request.Description),
+        new SqlParameter("@Images", imagesTable)
+        {
+            SqlDbType = SqlDbType.Structured,
+            TypeName = "dbo.ImageTableType"
+        },
+        new SqlParameter("@ProductServices", productServicesTable)
+        {
+            SqlDbType = SqlDbType.Structured,
+            TypeName = "dbo.ProductServiceType"
+        }
+    };
+
+            // Gọi Stored Procedure
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddProductWithImagesAndServices @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images, @ProductServices",
+                parameters
+            );
+        }
+
+
+        public async Task AddProductWithImageAsync(Product product, List<ImageTable> images)
+        {
+            var imageDataTable = new DataTable();
+            imageDataTable.Columns.Add("ImageBase64", typeof(string));
+
+            foreach (var image in images)
+            {
+                imageDataTable.Rows.Add(image.ImageBase64);
+            }
+
+            var ClientId_Param = new SqlParameter("@ClientId", product.ClientId);
+            var CategoryId_Param = new SqlParameter("@CategoryId", product.CategoryId);
+            var productNameParam = new SqlParameter("@ProductName", product.ProductName);
+            var priceParam = new SqlParameter("@Price", product.Price);
+            var initialQuantityParam = new SqlParameter("@InitialQuantity", product.InitialQuantity);
+            var descriptionParam = new SqlParameter("@Description", product.Description ?? (object)DBNull.Value);
+
+            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+            {
+                TypeName = "dbo.ImageTableType",
+                Value = imageDataTable
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC AddProductWithImages @ClientId, @CategoryId, @ProductName, @Price, @InitialQuantity, @Description, @Images",
+                ClientId_Param, CategoryId_Param, productNameParam, priceParam, initialQuantityParam, descriptionParam, imagesParam
+            );
+        }
+
+    
+        public async Task<(IEnumerable<ProductDto> Products, int TotalRecords, int TotalPages)> GetAllProductsAsync(int pageNumber, string searchTerm = null, decimal? minPrice = null, decimal? maxPrice = null, bool? isActive = null)
+        {
+            var productDictionary = new Dictionary<Guid, ProductDto>();
+
+            // Tạo các tham số cho stored procedure
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+            var minPriceParam = new SqlParameter("@MinPrice", minPrice ?? (object)DBNull.Value);
+            var maxPriceParam = new SqlParameter("@MaxPrice", maxPrice ?? (object)DBNull.Value);
+            var isActiveParam = new SqlParameter("@IsActive", isActive.HasValue ? (object)isActive.Value : DBNull.Value);
+
+            // Gọi stored procedure
+            var results = await _context.Set<RawProductResult>()
+                .FromSqlRaw(
+                    "EXEC [dbo].[GetAllProduct] @PageNumber, @SearchTerm, @MinPrice, @MaxPrice, @IsActive",
+                    pageNumberParam,
+                    searchTermParam,
+                    minPriceParam,
+                    maxPriceParam,
+                    isActiveParam
+                )
+                .ToListAsync();
+
+            // Tổng số bản ghi và tổng số trang
+            int totalRecords = results.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = results.FirstOrDefault()?.TotalPages ?? 0;
+
+            // Xử lý kết quả để tạo danh sách ProductDto
+            foreach (var result in results)
+            {
+                if (!productDictionary.TryGetValue(result.ProductId, out var product))
+                {
+                    product = new ProductDto
+                    {
+                        ProductId = result.ProductId,
+                        ClientId = result.ClientId,
+                        CategoryId = result.CategoryId,
+                        ProductName = result.ProductName,
+                        Price = result.Price,
+                        InitialQuantity = result.InitialQuantity,
+                        Description = result.Description,
+                        IsActive = result.IsActive,
+                        Status = result.Status,
+                        CreatedAt = result.CreatedAt,
+                        Images = new List<ImageTable>()
+                    };
+
+                    productDictionary.Add(result.ProductId, product);
+                }
+
+                // Thêm hình ảnh nếu có
+                if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+                {
+                    product.Images.Add(new ImageTable
+                    {
+                        ImageId = result.ImageId.Value,
+                        ImageBase64 = result.ImageBase64
+                    });
+                }
+            }
+
+            // Trả về kết quả
+            return (productDictionary.Values, totalRecords, totalPages);
         }
     }
 }

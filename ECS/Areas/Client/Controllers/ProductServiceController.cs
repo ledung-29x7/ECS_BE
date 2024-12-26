@@ -48,6 +48,24 @@ namespace ECS.Areas.Client.Controllers
             }
         }
 
+        [HttpGet("Product/{producrId}")]
+        public async Task<IActionResult> GetProductServiceByProductId(Guid producrId)
+        {
+            try
+            {
+                var productServices = await _productServiceRepository.GetProductServiceByProductId(producrId);
+                if (productServices == null || productServices.Count == 0)
+                {
+                    return NotFound($"No ProductService found for ClientId: {producrId}");
+                }
+                return Ok(productServices);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateProductService([FromBody] ProductService productService)
         {

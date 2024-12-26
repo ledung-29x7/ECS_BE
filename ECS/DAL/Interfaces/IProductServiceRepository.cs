@@ -8,6 +8,7 @@ namespace ECS.DAL.Interfaces
         Task<List<ProductService>> GetAllProductService();
         Task UpdateProductService (ProductService productService);
         Task<List<ProductService>> GetProductServiceByClientId(Guid clientId);
+        Task<List<ProductService>> GetProductServiceByProductId(Guid productId);
         
     }
 }

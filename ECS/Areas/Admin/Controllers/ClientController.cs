@@ -47,7 +47,7 @@ namespace ECS.Areas.Admin.Controllers
             client.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
             await _clientRepository.RegisterClient(client);
             var subject = "Your Enrollment Code";
-            var body = $"<!DOCTYPE html>\r\n<html lang=\"vi\">\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <title>Thông Tin Tài Khoản Khách Hàng</title>\r\n    <style>\r\n        body {{\r\n            font-family: Arial, sans-serif;\r\n            line-height: 1.6;\r\n            color: #333;\r\n            margin: 0;\r\n            padding: 0;\r\n            background-color: #f4f4f4;\r\n        }}\r\n        .container {{\r\n            max-width: 600px;\r\n            margin: 20px auto;\r\n            padding: 20px;\r\n            background-color: #fff;\r\n            border-radius: 10px;\r\n            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\r\n        }}\r\n        h1 {{\r\n            color: #007BFF;\r\n            font-size: 24px;\r\n        }}\r\n        p {{\r\n            margin: 10px 0;\r\n        }}\r\n        .details {{\r\n            background-color: #f0f8ff;\r\n            padding: 15px;\r\n            border-left: 5px solid #007BFF;\r\n            margin: 20px 0;\r\n            border-radius: 5px;\r\n        }}\r\n        a {{\r\n            color: #007BFF;\r\n            text-decoration: none;\r\n        }}\r\n        a:hover {{\r\n            text-decoration: underline;\r\n        }}\r\n        .footer {{\r\n            margin-top: 20px;\r\n            font-size: 14px;\r\n            color: #555;\r\n        }}\r\n    </style>\r\n</head>\r\n<body>\r\n    <div class=\"container\">\r\n        <h1>Thông Tin Tài Khoản Đăng Nhập Của Quý Khách</h1>\r\n        \r\n        <p>Kính gửi <strong>{registerDto.ContactPerson}</strong>,</p>\r\n\r\n        <p>Chúng tôi xin thông báo tài khoản của quý khách đã được tạo thành công trên hệ thống của <strong>ECS</strong>. Dưới đây là thông tin đăng nhập của quý khách:</p>\r\n\r\n        <div class=\"details\">\r\n            <p><strong>Tên đăng nhập:</strong>{registerDto.Email}</p>\r\n            <p><strong>Mật khẩu:</strong>{registerDto.Password}</p>\r\n        </div>\r\n\r\n        <p>Quý khách vui lòng truy cập vào hệ thống thông qua đường link sau để đăng nhập và thay đổi mật khẩu ngay khi có thể: <br>\r\n        <a href=\"[Link đăng nhập]\">[Link đăng nhập]</a></p>\r\n\r\n        <p>Nếu có bất kỳ thắc mắc hoặc cần hỗ trợ thêm, quý khách vui lòng liên hệ với chúng tôi qua <a href=\"mailto:[Email hỗ trợ]\">[Email hỗ trợ]</a> hoặc <strong>[Số điện thoại hỗ trợ]</strong>.</p>\r\n\r\n        <div class=\"footer\">\r\n            <p>Trân trọng,</p>\r\n            <p><strong>[Tên của bạn]</strong></p>\r\n            <p><strong>[Tên công ty của bạn]</strong></p>\r\n            <p>[Thông tin liên hệ công ty]</p>\r\n        </div>\r\n    </div>\r\n</body>\r\n</html>";
+            var body = $"<!DOCTYPE html>\r\n<html lang=\"vi\">\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <title>Thông Tin Tài Khoản Khách Hàng</title>\r\n    <style>\r\n        body {{\r\n            font-family: Arial, sans-serif;\r\n            line-height: 1.6;\r\n            color: #333;\r\n            margin: 0;\r\n            padding: 0;\r\n            background-color: #f4f4f4;\r\n        }}\r\n        .container {{\r\n            max-width: 600px;\r\n            margin: 20px auto;\r\n            padding: 20px;\r\n            background-color: #fff;\r\n            border-radius: 10px;\r\n            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\r\n        }}\r\n        h1 {{\r\n            color: #007BFF;\r\n            font-size: 24px;\r\n        }}\r\n        p {{\r\n            margin: 10px 0;\r\n        }}\r\n        .details {{\r\n            background-color: #f0f8ff;\r\n            padding: 15px;\r\n            border-left: 5px solid #007BFF;\r\n            margin: 20px 0;\r\n            border-radius: 5px;\r\n        }}\r\n        a {{\r\n            color: #007BFF;\r\n            text-decoration: none;\r\n        }}\r\n        a:hover {{\r\n            text-decoration: underline;\r\n        }}\r\n        .footer {{\r\n            margin-top: 20px;\r\n            font-size: 14px;\r\n            color: #555;\r\n        }}\r\n    </style>\r\n</head>\r\n<body>\r\n    <div class=\"container\">\r\n        <h1>Thông Tin Tài Khoản Đăng Nhập Của Quý Khách</h1>\r\n        \r\n        <p>Kính gửi <strong>{registerDto.ContactPerson}</strong>,</p>\r\n\r\n        <p>Chúng tôi xin thông báo tài khoản của quý khách đã được tạo thành công trên hệ thống của <strong>ECS</strong>. Dưới đây là thông tin đăng nhập của quý khách:</p>\r\n\r\n        <div class=\"details\">\r\n            <p><strong>Tên đăng nhập:</strong>{registerDto.Email}</p>\r\n            <p><strong>Mật khẩu:</strong>{registerDto.Password}</p>\r\n        </div>\r\n\r\n        <p>Quý khách vui lòng truy cập vào hệ thống thông qua đường link sau để đăng nhập và thay đổi mật khẩu ngay khi có thể: <br>\r\n        <a href=\"[Link đăng nhập]\">[Link đăng nhập]</a></p>\r\n\r\n        <p>Nếu có bất kỳ thắc mắc hoặc cần hỗ trợ thêm, quý khách vui lòng liên hệ với chúng tôi qua <a href=\"mailto:ecs@gmail.com\">ecs@gmail.com</a> hoặc <strong>0973 111 086</strong>.</p>\r\n\r\n        <div class=\"footer\">\r\n            <p>Trân trọng,</p>\r\n            <p><strong>Le Chung Dung</strong></p>\r\n            <p><strong>ECS</strong></p>\r\n            <p> 8A Tôn Thất Thuyết, P.Mỹ Đình 2, Q.Nam Từ Liêm, Hà Nội</p>\r\n        </div>\r\n    </div>\r\n</body>\r\n</html>";
             await _emailService.SendEmailAsync(registerDto.Email,subject,body);
             return Ok("Client registered successfully.");
         }
@@ -113,6 +113,68 @@ namespace ECS.Areas.Admin.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        //[HttpGet]
+        //public async Task<ActionResult<List<Models.Client>>> GetAllClient()
+        //{
+        //    var clients = await _clientRepository.GetAllClient();
+        //    return Ok(clients);
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> GetClients([FromQuery] int pageNumber = 1, [FromQuery] string searchTerm = null)
+        {
+            var (clients, totalRecords, totalPages) = await _clientRepository.GetAllClientAndSearchAsync(pageNumber, searchTerm);
+
+            return Ok(new
+            {
+                Clients = clients,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            });
+        }
+
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Role>> GetClientById(Guid id)
+        {
+            var client = await _clientRepository.GetClientById(id);
+            if (client == null)
+            {
+                return NotFound($"Client with ID {id} not found.");
+            }
+            return Ok(client);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateClient(Guid id, [FromBody] Models.Client client)
+        {
+            if (id != client.ClientId)
+            {
+                return BadRequest("Role ID mismatch.");
+            }
+
+            var existingRole = await _clientRepository.GetClientById(id);
+            if (existingRole == null)
+            {
+                return NotFound($"Role with ID {id} not found.");
+            }
+
+            await _clientRepository.UpdateClient(client);
+            return Ok("Update Client Success");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRole(Guid id)
+        {
+            var role = await _clientRepository.GetClientById(id);
+            if (role == null)
+            {
+                return NotFound($"Role with ID {id} not found.");
+            }
+
+            await _clientRepository.DeleteClient(id);
+            return Ok("Delete Client Success");
         }
 
 

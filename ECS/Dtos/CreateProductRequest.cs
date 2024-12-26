@@ -9,5 +9,14 @@
         public int InitialQuantity { get; set; }
         public string Description { get; set; }
         public List<IFormFile> ImageFiles { get; set; }
+        //public List<ProductServiceRequest> ProductServices { get; set; }
+    }
+    public class ProductServiceRequest
+    {
+        public int ServiceId { get; set; }
+        public Guid ClientId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int RequiredEmployees { get; set; }
     }
 }

@@ -33,10 +33,17 @@ namespace ECS.DAL.Repositorys
         {
             var ClientId_Param = new SqlParameter("@ClientId", clientId);
             var productServices = await _context.productServices
-                                       .FromSqlRaw("EXECUTE dbo.GetRoleById @RoleId", ClientId_Param)
+                                       .FromSqlRaw("EXECUTE dbo.GetProductServiceByClientId @ClientId", ClientId_Param)
                                        .ToListAsync();
             return productServices;
+        }
 
+        public async Task<List<ProductService>> GetProductServiceByProductId(Guid productId)
+        {
+            var ProductId_Param = new SqlParameter("@ProductId", productId);
+            var productServices = await _context.productServices.FromSqlRaw("EXECUTE dbo.GetProductServiceByProductId @ProductId", ProductId_Param)
+                                       .ToListAsync();
+            return productServices;
         }
 
         public async Task UpdateProductService(ProductService productService)
