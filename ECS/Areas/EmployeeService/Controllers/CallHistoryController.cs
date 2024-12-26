@@ -65,16 +65,27 @@ namespace ECS.Areas.EmployeeService.Controllers
 
             try
             {
-                await _callHistoryReponsitory.AddCallHistory(callHistory);
-                return Ok("Call history added successfully.");
+                // Gọi repository để thêm CallHistory và nhận lại CallId
+                var callId = await _callHistoryReponsitory.AddCallHistory(callHistory);
+
+                if (callId > 0)
+                {
+                    return Ok(new
+                    {
+                        Message = "Call history added successfully.",
+                        CallId = callId
+                    });
+                }
+                else
+                {
+                    return StatusCode(500, "An error occurred while adding the call history.");
+                }
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCallHistory(int id, [FromBody] CallHistory callHistory)

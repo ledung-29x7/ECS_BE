@@ -32,18 +32,22 @@ namespace ECS.DAL.Repositorys
           
         }
 
-        public async Task AddCallHistory(CallHistory callHistory)
+        public async Task<int> AddCallHistory(CallHistory callHistory)
         {
 
             var employee_param = new SqlParameter("@EmployeeId", callHistory.EmployeeId);
             var phonenumber_param = new SqlParameter("@PhoneNumber", callHistory.PhoneNumber);
             var status_param = new SqlParameter("@Status", callHistory.Status);
             var note_param = new SqlParameter("@Notes", callHistory.Notes);
-    
 
-            await _dbContext.Database.ExecuteSqlRawAsync(
-                "EXEC dbo.AddCallHistory @EmployeeId, @PhoneNumber, @Status, @Notes", employee_param , phonenumber_param, status_param , note_param
-                );
+            // Sử dụng SqlRaw để nhận kết quả trả về
+            var result = await _dbContext.callHistory
+                .FromSqlRaw("EXEC dbo.AddCallHistory @EmployeeId, @PhoneNumber, @Status, @Notes",
+                    employee_param, phonenumber_param, status_param, note_param)
+                .ToListAsync();
+
+            // Lấy CallId từ kết quả trả về
+            return result.FirstOrDefault()?.CallId ?? 0;
         }
 
         public async Task DeleteCallHistory(int id)
