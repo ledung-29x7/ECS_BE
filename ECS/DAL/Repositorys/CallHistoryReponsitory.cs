@@ -32,23 +32,49 @@ namespace ECS.DAL.Repositorys
           
         }
 
+        //public async Task<int> AddCallHistory(CallHistory callHistory)
+        //{
+
+        //    var employee_param = new SqlParameter("@EmployeeId", callHistory.EmployeeId);
+        //    var phonenumber_param = new SqlParameter("@PhoneNumber", callHistory.PhoneNumber);
+        //    var status_param = new SqlParameter("@Status", callHistory.Status);
+        //    var note_param = new SqlParameter("@Notes", callHistory.Notes);
+
+        //    // Sử dụng SqlRaw để nhận kết quả trả về
+        //    var result = await _dbContext.callHistory
+        //        .FromSqlRaw("EXEC dbo.AddCallHistory @EmployeeId, @PhoneNumber, @Status, @Notes",
+        //            employee_param, phonenumber_param, status_param, note_param)
+        //        .ToListAsync();
+
+        //    // Lấy CallId từ kết quả trả về
+        //    return result.FirstOrDefault()?.CallId ?? 0;
+        //}
         public async Task<int> AddCallHistory(CallHistory callHistory)
         {
+            var commandText = "EXEC dbo.AddCallHistory @EmployeeId, @PhoneNumber, @Status, @Notes";
 
-            var employee_param = new SqlParameter("@EmployeeId", callHistory.EmployeeId);
-            var phonenumber_param = new SqlParameter("@PhoneNumber", callHistory.PhoneNumber);
-            var status_param = new SqlParameter("@Status", callHistory.Status);
-            var note_param = new SqlParameter("@Notes", callHistory.Notes);
+            using (var command = _dbContext.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = commandText;
+                command.CommandType = System.Data.CommandType.Text;
 
-            // Sử dụng SqlRaw để nhận kết quả trả về
-            var result = await _dbContext.callHistory
-                .FromSqlRaw("EXEC dbo.AddCallHistory @EmployeeId, @PhoneNumber, @Status, @Notes",
-                    employee_param, phonenumber_param, status_param, note_param)
-                .ToListAsync();
+                // Thêm tham số
+                command.Parameters.Add(new SqlParameter("@EmployeeId", callHistory.EmployeeId));
+                command.Parameters.Add(new SqlParameter("@PhoneNumber", callHistory.PhoneNumber));
+                command.Parameters.Add(new SqlParameter("@Status", callHistory.Status));
+                command.Parameters.Add(new SqlParameter("@Notes", callHistory.Notes));
 
-            // Lấy CallId từ kết quả trả về
-            return result.FirstOrDefault()?.CallId ?? 0;
+                if (command.Connection.State != System.Data.ConnectionState.Open)
+                {
+                    await command.Connection.OpenAsync();
+                }
+
+                // Thực thi và lấy giá trị trả về
+                var result = await command.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
         }
+
 
         public async Task DeleteCallHistory(int id)
         {
