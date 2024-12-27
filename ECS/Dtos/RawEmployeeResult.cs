@@ -12,5 +12,6 @@
         public int? ImageId { get; set; }
         public string? ImageBase64 { get; set; }
         public int? CategoryId { get; set; }
+        public string? CategoryName { get; set; }
     }
 }

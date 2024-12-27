@@ -452,7 +452,8 @@ namespace ECS.DAL.Repositorys
                 {
                     employee.Categories.Add(new ProductCategory
                     {
-                        CategoryId = result.CategoryId.Value
+                        CategoryId = result.CategoryId.Value,
+                        CategoryName = result.CategoryName
                     });
                 }
             }
