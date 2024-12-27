@@ -11,6 +11,6 @@
         public string PhoneNumber { get; set; }
         
         public List<IFormFile> ImageFiles { get; set; }
-
+        public List<int> CategoryIds { get; set; }
     }
 }

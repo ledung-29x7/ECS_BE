@@ -36,12 +36,38 @@ namespace ECS.Areas.Authen.Controllers
             _tokenBlacklistRepository = tokenBlacklistRepository;
             _mapper = mapper;
         }
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromForm] RegisterEmployeeDto registerDto)
+        //{
+        //    var images = new List<ImageTable>();
+
+        //    foreach (var imageFile in registerDto.ImageFiles)
+        //    {
+        //        using (var memoryStream = new MemoryStream())
+        //        {
+        //            await imageFile.CopyToAsync(memoryStream);
+        //            string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
+        //            images.Add(new ImageTable { ImageBase64 = imageBase64 });
+        //        }
+        //    }
+
+        //    var existingUser = await _employeeRepository.GetEmployeeByEmail(registerDto.Email);
+        //    if (existingUser != null)
+        //        return BadRequest("Email is already registered.");
+
+        //    var employee = _mapper.Map<Employee>(registerDto);
+        //    employee.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+        //    await _employeeRepository.AddEmployeeWithImagesAsync(employee, images);
+
+        //    return Ok("Employee registered successfully.");
+        //}
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterEmployeeDto registerDto)
         {
             var images = new List<ImageTable>();
 
-            foreach (var imageFile in registerDto.ImageFiles)
+            // Convert uploaded images to base64 strings
+            foreach (var imageFile in registerDto.ImageFiles ?? Enumerable.Empty<IFormFile>())
             {
                 using (var memoryStream = new MemoryStream())
                 {
@@ -51,16 +77,28 @@ namespace ECS.Areas.Authen.Controllers
                 }
             }
 
+            // Check if email is already registered
             var existingUser = await _employeeRepository.GetEmployeeByEmail(registerDto.Email);
             if (existingUser != null)
                 return BadRequest("Email is already registered.");
 
+            // Map RegisterEmployeeDto to Employee entity
             var employee = _mapper.Map<Employee>(registerDto);
             employee.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-            await _employeeRepository.AddEmployeeWithImagesAsync(employee, images);
 
-            return Ok("Employee registered successfully.");
+            // Add Employee and EmployeeProductCategory
+            try
+            {
+                var employeeId = await _employeeRepository.AddEmployeeWithImagesAsync(employee, images, registerDto.CategoryIds ?? new List<int>());
+                return Ok(new { Message = "Employee registered successfully.", EmployeeId = employeeId });
+            }
+            catch (Exception ex)
+            {
+                // Handle errors
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginEmployeeDto request)

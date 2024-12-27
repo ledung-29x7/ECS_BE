@@ -39,12 +39,14 @@ namespace ECS.DAL.Repositorys
 
         public async Task RegisterEmployee(Employee employee)
         {
+
             var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
             var LastName_param = new SqlParameter("@LastName", employee.LastName);
             var email_param = new SqlParameter("@Email", employee.Email);
             var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
             var Password_param = new SqlParameter("@Password", employee.Password);
             await _context.Database.ExecuteSqlRawAsync("EXEC RegisterEmployee @FirstName, @LastName, @Email, @PhoneNumber, @Password", FirstName_param, LastName_param, email_param, Phone_number_param, Password_param);
+            
         }
 
         public async Task UpdateEmployee(Employee employee)
@@ -82,32 +84,97 @@ namespace ECS.DAL.Repositorys
             return await Task.FromResult(_context.employees.FromSqlRaw("EXECUTE dbo.GetAllEmployee").ToList());
         }
 
-        public async Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images)
-        {
-            var imageDataTable = new DataTable();
-            imageDataTable.Columns.Add("ImageBase64", typeof(string));
+        //public async Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images)
+        //{
+        //    var imageDataTable = new DataTable();
+        //    imageDataTable.Columns.Add("ImageBase64", typeof(string));
 
-            foreach (var image in images)
+        //    foreach (var image in images)
+        //    {
+        //        imageDataTable.Rows.Add(image.ImageBase64);
+        //    }
+        //    var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
+        //    var LastName_param = new SqlParameter("@LastName", employee.LastName);
+        //    var email_param = new SqlParameter("@Email", employee.Email);
+        //    var DepartmentID_param = new SqlParameter("@DepartmentID", employee.DepartmentID);
+        //    var RoleId_param = new SqlParameter("@RoleId", employee.RoleId);
+        //    var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
+        //    var Password_param = new SqlParameter("@Password", employee.Password);
+        //    var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+        //    {
+        //        TypeName = "dbo.ImageTableType",
+        //        Value = imageDataTable
+        //    };
+        //    await _context.Database.ExecuteSqlRawAsync(
+        //        "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email,@DepartmentID, @RoleId, @PhoneNumber, @Password, @Images",
+        //        FirstName_param, LastName_param, email_param,DepartmentID_param, RoleId_param, Phone_number_param, Password_param, imagesParam
+        //    );
+        //}
+        public async Task<Guid> AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images, List<int> categoryIds)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                imageDataTable.Rows.Add(image.ImageBase64);
+                // 1. Add Employee and get EmployeeId
+                var imageDataTable = new DataTable();
+                imageDataTable.Columns.Add("ImageBase64", typeof(string));
+
+                foreach (var image in images)
+                {
+                    imageDataTable.Rows.Add(image.ImageBase64);
+                }
+
+                var employeeIdParam = new SqlParameter("@EmployeeId", SqlDbType.UniqueIdentifier)
+                {
+                    Direction = ParameterDirection.Output
+                };
+
+                var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
+                var LastName_param = new SqlParameter("@LastName", employee.LastName);
+                var email_param = new SqlParameter("@Email", employee.Email);
+                var DepartmentID_param = new SqlParameter("@DepartmentID", employee.DepartmentID);
+                var RoleId_param = new SqlParameter("@RoleId", employee.RoleId);
+                var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
+                var Password_param = new SqlParameter("@Password", employee.Password);
+                var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+                {
+                    TypeName = "dbo.ImageTableType",
+                    Value = imageDataTable
+                };
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email, @DepartmentID, @RoleId, @PhoneNumber, @Password, @Images, @EmployeeId OUTPUT",
+                    FirstName_param, LastName_param, email_param, DepartmentID_param, RoleId_param, Phone_number_param, Password_param, imagesParam, employeeIdParam
+                );
+
+                var employeeId = (Guid)employeeIdParam.Value;
+
+                // 2. Add EmployeeProductCategory
+                foreach (var categoryId in categoryIds)
+                {
+                    var employeeIdCategoryParam = new SqlParameter("@EmployeeId", employeeId);
+                    var categoryIdParam = new SqlParameter("@CategoryId", categoryId);
+
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "EXEC AddEmployeeProductCategory @EmployeeId, @CategoryId",
+                        employeeIdCategoryParam, categoryIdParam
+                    );
+                }
+
+                // 3. Commit transaction
+                await transaction.CommitAsync();
+
+                return employeeId;
             }
-            var FirstName_param = new SqlParameter("@FirstName", employee.FirstName);
-            var LastName_param = new SqlParameter("@LastName", employee.LastName);
-            var email_param = new SqlParameter("@Email", employee.Email);
-            var DepartmentID_param = new SqlParameter("@DepartmentID", employee.DepartmentID);
-            var RoleId_param = new SqlParameter("@RoleId", employee.RoleId);
-            var Phone_number_param = new SqlParameter("@PhoneNumber", employee.PhoneNumber);
-            var Password_param = new SqlParameter("@Password", employee.Password);
-            var imagesParam = new SqlParameter("@Images", SqlDbType.Structured)
+            catch
             {
-                TypeName = "dbo.ImageTableType",
-                Value = imageDataTable
-            };
-            await _context.Database.ExecuteSqlRawAsync(
-                "EXEC AddEmployeeWithImages @FirstName, @LastName, @Email,@DepartmentID, @RoleId, @PhoneNumber, @Password, @Images",
-                FirstName_param, LastName_param, email_param,DepartmentID_param, RoleId_param, Phone_number_param, Password_param, imagesParam
-            );
+                // Rollback transaction in case of error
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
+
 
         public async Task<List<EmployeeWithImagesDTO>> GetAllEmployeesAsync()
         {

@@ -16,7 +16,8 @@ namespace ECS.DAL.Interfaces
         Task DeleteEmployeeAndUnsetManager(Guid EmployeeId);
         
         Task<List<Employee>> GetAllEmployee();
-        Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images);
+        //Task AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images);
+        Task<Guid> AddEmployeeWithImagesAsync(Employee employee, List<ImageTable> images, List<int> categoryIds);
         Task<List<EmployeeWithImagesDTO>> GetAllEmployeesAsync();
         Task ChangePassword(Guid employeeId, string oldPasswordHash, string newPasswordHash);
         Task<List<EmployeeWorkListDto>> GetEmployeeWorkListByIdAsync(Guid employeeId);
