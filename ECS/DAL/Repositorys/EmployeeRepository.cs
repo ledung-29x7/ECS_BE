@@ -307,9 +307,82 @@ namespace ECS.DAL.Repositorys
             return (result, totalRecords, totalPages);
         }
 
+        //     public async Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeesAsync(
+        //int pageNumber,
+        //string searchTerm)
+        //     {
+        //         var employeeDictionary = new Dictionary<Guid, EmployeeDto>();
+
+        //         // Define output parameters for TotalRecords and TotalPages
+        //         var totalRecordsParam = new SqlParameter
+        //         {
+        //             ParameterName = "@TotalRecords",
+        //             SqlDbType = System.Data.SqlDbType.Int,
+        //             Direction = System.Data.ParameterDirection.Output
+        //         };
+
+        //         var totalPagesParam = new SqlParameter
+        //         {
+        //             ParameterName = "@TotalPages",
+        //             SqlDbType = System.Data.SqlDbType.Int,
+        //             Direction = System.Data.ParameterDirection.Output
+        //         };
+
+        //         // Input parameters
+        //         var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+        //         var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+
+        //         // Execute stored procedure
+        //         var results = await _context.Set<RawEmployeeResult>()
+        //             .FromSqlRaw(
+        //                 "EXEC [dbo].[GetAllEmployee] @PageNumber, @SearchTerm, @TotalRecords OUTPUT, @TotalPages OUTPUT",
+        //                 pageNumberParam,
+        //                 searchTermParam,
+        //                 totalRecordsParam,
+        //                 totalPagesParam
+        //             )
+        //             .ToListAsync();
+
+        //         // Process the raw results into the dictionary
+        //         foreach (var result in results)
+        //         {
+        //             if (!employeeDictionary.TryGetValue(result.EmployeeId, out var employee))
+        //             {
+        //                 employee = new EmployeeDto
+        //                 {
+        //                     EmployeeId = result.EmployeeId,
+        //                     FirstName = result.FirstName,
+        //                     LastName = result.LastName,
+        //                     Email = result.Email,
+        //                     PhoneNumber = result.PhoneNumber,
+        //                     RoleId = result.RoleId,
+        //                     DepartmentID = result.DepartmentID,
+        //                     Images = new List<ImageTable>(),
+        //                     Categories = new List<ProductCategory>()
+        //                 };
+
+        //                 employeeDictionary.Add(result.EmployeeId, employee);
+        //             }
+
+        //             if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+        //             {
+        //                 employee.Images.Add(new ImageTable
+        //                 {
+        //                     ImageId = result.ImageId.Value,
+        //                     ImageBase64 = result.ImageBase64
+        //                 });
+        //             }
+        //         }
+
+        //         // Retrieve output parameter values
+        //         int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+        //         int totalPages = (int)(totalPagesParam.Value ?? 0);
+
+        //         return (employeeDictionary.Values, totalRecords, totalPages);
+        //     }
         public async Task<(IEnumerable<EmployeeDto> Employees, int TotalRecords, int TotalPages)> GetAllEmployeesAsync(
-   int pageNumber,
-   string searchTerm)
+         int pageNumber,
+         string searchTerm)
         {
             var employeeDictionary = new Dictionary<Guid, EmployeeDto>();
 
@@ -357,18 +430,29 @@ namespace ECS.DAL.Repositorys
                         PhoneNumber = result.PhoneNumber,
                         RoleId = result.RoleId,
                         DepartmentID = result.DepartmentID,
-                        Images = new List<ImageTable>()
+                        Images = new List<ImageTable>(),
+                        Categories = new List<ProductCategory>()
                     };
 
                     employeeDictionary.Add(result.EmployeeId, employee);
                 }
 
+                // Add image if available
                 if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
                 {
                     employee.Images.Add(new ImageTable
                     {
                         ImageId = result.ImageId.Value,
                         ImageBase64 = result.ImageBase64
+                    });
+                }
+
+                // Add category if available
+                if (result.CategoryId.HasValue)
+                {
+                    employee.Categories.Add(new ProductCategory
+                    {
+                        CategoryId = result.CategoryId.Value
                     });
                 }
             }
@@ -379,6 +463,7 @@ namespace ECS.DAL.Repositorys
 
             return (employeeDictionary.Values, totalRecords, totalPages);
         }
+
 
     }
 

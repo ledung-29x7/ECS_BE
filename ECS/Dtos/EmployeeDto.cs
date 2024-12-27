@@ -1,4 +1,5 @@
-﻿using ECS.Areas.Units.Models;
+﻿using ECS.Areas.Client.Models;
+using ECS.Areas.Units.Models;
 
 namespace ECS.Dtos
 {
@@ -12,6 +13,7 @@ namespace ECS.Dtos
         public int? RoleId { get; set; }
         public int? DepartmentID { get; set; }
         public List<ImageTable> Images { get; set; } = new List<ImageTable>();
+        public List<ProductCategory> Categories { get; set; } = new List<ProductCategory>();
         public int? TotalRecords { get; set; } // Metadata for total records
         public int? TotalPages { get; set; }   // Metadata for total pages
     }
