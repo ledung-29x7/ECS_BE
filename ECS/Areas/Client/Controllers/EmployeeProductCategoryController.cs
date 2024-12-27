@@ -1,6 +1,8 @@
 ﻿using ECS.Areas.Authen.Models;
 using ECS.Areas.Client.Models;
 using ECS.DAL.Interfaces;
+using ECS.DAL.Repositorys;
+using ECS.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECS.Areas.Client.Controllers
@@ -56,6 +58,33 @@ namespace ECS.Areas.Client.Controllers
                 return NotFound(new { message = "EmployeeProductCategory not found." });
             }
             return Ok(result);
+        }
+
+        [HttpPut("update-category")]
+        public async Task<IActionResult> UpdateCategory([FromBody] UpdateEmployeeProductCategoryDto updateDto)
+        {
+            if (updateDto == null)
+                return BadRequest("Invalid request data.");
+
+            try
+            {
+                // Create EmployeeProductCategory object from DTO
+                var employeeProductCategory = new EmployeeProductCategory
+                {
+                    EmployeeId = updateDto.EmployeeId,
+                    CategoryId = updateDto.CategoryId
+                };
+
+                // Call repository to update the category
+                await _repository.UpdateEmployeeProductCategoryByEmployeeId(employeeProductCategory);
+
+                return Ok("Employee product category updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
     }
 }

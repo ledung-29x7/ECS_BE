@@ -7,6 +7,8 @@ namespace ECS.DAL.Interfaces
     {
         Task<List<EmployeeProductCategory>> GetAllEmployeeProductCategories();
         Task AddEmployeeProductCategory(EmployeeProductCategory employeeProductCategory);
+
+        Task UpdateEmployeeProductCategoryByEmployeeId(EmployeeProductCategory employeeProductCategory);
         Task DeleteEmployeeProductCategory(int employeeProductCategoryId);
 
         Task<EmployeeProductCategory> GetEmployeeProductCategoryById (int employeeProductCategoryId);

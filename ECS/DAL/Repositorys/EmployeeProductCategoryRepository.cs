@@ -57,5 +57,12 @@ namespace ECS.DAL.Repositorys
                .ToListAsync();
             return employeeProductCategories.FirstOrDefault();
         }
+
+        public async Task UpdateEmployeeProductCategoryByEmployeeId(EmployeeProductCategory employeeProductCategory)
+        {
+            var employeeId_param = new SqlParameter("@EmployeeId", employeeProductCategory.EmployeeId);
+            var CategoryId_param = new SqlParameter("@Category", employeeProductCategory.CategoryId);
+            await _context.Database.ExecuteSqlRawAsync("EXECUTE dbo.UpdateEmployeeProductCategory @EmployeeId, @Category", employeeId_param, CategoryId_param);
+        }
     }
 }
