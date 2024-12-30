@@ -24,10 +24,39 @@ namespace ECS.DAL.Repositorys
             await _context.Database.ExecuteSqlRawAsync("EXECUTE CreateProductService @ServiceId, @ProductId, @ClientId, @StartDate, @EndDate, @RequiredEmployees", ServiceId_Param, ProductId_Param, ClientId_Param, StartDate_Param, EndDate_Param, RequiredEmployees_Param);
         }
 
-        public async Task<List<ProductService>> GetAllProductService()
+        //public async Task<List<ProductService>> GetAllProductService()
+        //{
+        //    return await Task.FromResult(_context.productServices.FromSqlRaw("EXECUTE dbo.GetAllProductService").ToList());
+        //}
+        public async Task<(List<ProductService> ProductServices, int TotalRecords, int TotalPages)> GetAllProductService(int pageNumber)
         {
-            return await Task.FromResult(_context.productServices.FromSqlRaw("EXECUTE dbo.GetAllProductService").ToList());
+            var totalRecordsParam = new SqlParameter
+            {
+                ParameterName = "@TotalRecords",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var totalPagesParam = new SqlParameter
+            {
+                ParameterName = "@TotalPages",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+
+            var productServices = await _context.productServices
+                .FromSqlRaw("EXEC dbo.GetAllProductService @PageNumber, @TotalRecords OUTPUT, @TotalPages OUTPUT",
+                            pageNumberParam, totalRecordsParam, totalPagesParam)
+                .ToListAsync();
+
+            int totalRecords = (int)totalRecordsParam.Value;
+            int totalPages = (int)totalPagesParam.Value;
+
+            return (productServices, totalRecords, totalPages);
         }
+
 
         public async Task<List<ProductService>> GetProductServiceByClientId(Guid clientId)
         {

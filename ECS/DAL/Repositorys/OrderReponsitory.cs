@@ -16,11 +16,33 @@ namespace ECS.DAL.Repositorys
             _context = context;
         }
 
-        public async Task<List<Order>> GetAllOrders()
+        public async Task<(List<Order> Orders, int TotalOrders, int TotalPages)> GetAllOrders(int pageNumber)
         {
-            return await _context.order
-                .FromSqlRaw("EXEC dbo.GetAllOrders")
+            var totalOrdersParam = new SqlParameter
+            {
+                ParameterName = "@TotalOrders",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var totalPagesParam = new SqlParameter
+            {
+                ParameterName = "@TotalPages",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+
+            var orders = await _context.order
+                .FromSqlRaw("EXEC dbo.GetAllOrders @PageNumber, @TotalOrders OUTPUT, @TotalPages OUTPUT",
+                    pageNumberParam, totalOrdersParam, totalPagesParam)
                 .ToListAsync();
+
+            int totalOrders = (int)totalOrdersParam.Value;
+            int totalPages = (int)totalPagesParam.Value;
+
+            return (orders, totalOrders, totalPages);
         }
 
         public async Task<Order> GetOrderById(int id)

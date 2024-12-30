@@ -18,18 +18,26 @@ namespace ECS.Areas.Client.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProductServices()
+        public async Task<IActionResult> GetAllProductServices([FromQuery] int pageNumber = 1)
         {
             try
             {
-                var productServices = await _productServiceRepository.GetAllProductService();
-                return Ok(productServices);
+                var result = await _productServiceRepository.GetAllProductService(pageNumber);
+
+                return Ok(new
+                {
+                    ProductServices = result.ProductServices,
+                    TotalRecords = result.TotalRecords,
+                    TotalPages = result.TotalPages,
+                    PageNumber = pageNumber
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpGet("Client/{clientId}")]
         public async Task<IActionResult> GetProductServiceByClientId(Guid clientId)
         {

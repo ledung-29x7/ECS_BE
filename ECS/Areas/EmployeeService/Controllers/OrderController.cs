@@ -38,12 +38,19 @@ namespace ECS.Areas.EmployeeService.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllOrders()
+        public async Task<IActionResult> GetAllOrders([FromQuery] int pageNumber = 1)
         {
             try
             {
-                var orders = await _orderRepository.GetAllOrders();
-                return Ok(orders);
+                var result = await _orderRepository.GetAllOrders(pageNumber);
+
+                return Ok(new
+                {
+                    Orders = result.Orders,
+                    TotalOrders = result.TotalOrders,
+                    TotalPages = result.TotalPages,
+                    PageNumber = pageNumber
+                });
             }
             catch (Exception ex)
             {
