@@ -140,6 +140,14 @@ namespace ECS.DAL.Repositorys
             var param = new SqlParameter("@OrderId", id);
             await _context.Database.ExecuteSqlRawAsync("EXEC dbo.DeleteOrder @OrderId", param);
         }
+
+        public async Task<List<GetOrderDetalByOrderId>> GetOrderdetailByOrderId(int orderId)
+        {
+            var orderId_Param = new SqlParameter("@OrderId", orderId);
+            return await _context.getOrderDetalByOrderIds
+                .FromSqlRaw("EXEC dbo.GetOrderdetailByOrderId @OrderId", orderId_Param)
+                .ToListAsync();
+        }
     }
 }
 

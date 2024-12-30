@@ -11,5 +11,7 @@ namespace ECS.DAL.Interfaces
         Task AddOrder(Order order);
         Task UpdateOrder(Order order);
         Task DeleteOrder(int id);
+
+        Task<List<GetOrderDetalByOrderId>> GetOrderdetailByOrderId(int orderId);
     }
 }
