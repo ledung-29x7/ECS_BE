@@ -1,6 +1,7 @@
 using ECS;
 using ECS.DAL.Interfaces;
 using ECS.DAL.Repositorys;
+using ECS.DAL.Services;
 using ECS.MappingProfile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,7 @@ builder.Services.AddScoped<IEmployeeProductCategoryRepository, EmployeeProductCa
 builder.Services.AddScoped<ICallStatusRepository, CallStatusRepository>();
 builder.Services.AddScoped<IProductStatusRepository, ProductStatusRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddHostedService<UpdateIsActiveBackgroundService>();
 
 
 

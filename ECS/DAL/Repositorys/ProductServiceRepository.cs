@@ -51,11 +51,13 @@ namespace ECS.DAL.Repositorys
                             pageNumberParam, totalRecordsParam, totalPagesParam)
                 .ToListAsync();
 
-            int totalRecords = (int)totalRecordsParam.Value;
-            int totalPages = (int)totalPagesParam.Value;
+            // Kiểm tra giá trị của OUTPUT parameters
+            int totalRecords = totalRecordsParam.Value != DBNull.Value ? (int)totalRecordsParam.Value : 0;
+            int totalPages = totalPagesParam.Value != DBNull.Value ? (int)totalPagesParam.Value : 1;
 
             return (productServices, totalRecords, totalPages);
         }
+
 
 
         public async Task<List<ProductService>> GetProductServiceByClientId(Guid clientId)
