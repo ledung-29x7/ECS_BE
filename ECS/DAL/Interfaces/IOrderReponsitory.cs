@@ -15,6 +15,6 @@ namespace ECS.DAL.Interfaces
         Task<List<GetOrderDetalByOrderId>> GetOrderdetailByOrderId(int orderId);
         Task<(List<Order> Orders, int TotalOrders, int TotalPages)> GetAllOrders(int pageNumber);
 
-       
+        Task<List<Order>> GetOrderByEmployeeId(Guid id);
     }
 }

@@ -170,6 +170,14 @@ namespace ECS.DAL.Repositorys
                 .FromSqlRaw("EXEC dbo.GetOrderdetailByOrderId @OrderId", orderId_Param)
                 .ToListAsync();
         }
+
+        public async Task<List<Order>> GetOrderByEmployeeId(Guid id)
+        {
+            return await _context.order
+                 .FromSqlRaw("EXEC dbo.GetOrderByEmployeeId @EmployeeId",
+                     new SqlParameter("@EmployeeId", id))
+                 .ToListAsync();
+        }
     }
 }
 

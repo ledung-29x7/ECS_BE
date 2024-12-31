@@ -49,6 +49,25 @@ namespace ECS.Areas.EmployeeService.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("employee/{id}")]
+        public async Task<IActionResult> GetCallHistoryByEmployeeId(Guid id)
+        {
+            try
+            {
+                var callHistory = await _callHistoryReponsitory.GetCallHistoryByEmployeeId(id);
+
+                if (callHistory == null)
+                {
+                    return NotFound($"Call history with ID {id} was not found.");
+                }
+
+                return Ok(callHistory);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> CreateCallHistory([FromBody] CallHistory callHistory)

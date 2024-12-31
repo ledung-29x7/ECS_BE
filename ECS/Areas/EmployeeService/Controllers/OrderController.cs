@@ -72,6 +72,20 @@ namespace ECS.Areas.EmployeeService.Controllers
             }
         }
 
+        [HttpGet("employee/{id}")]
+        public async Task<IActionResult> GetGetOrderDetalByOrderId(Guid id)
+        {
+            try
+            {
+                var orders = await _orderRepository.GetOrderByEmployeeId(id);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {

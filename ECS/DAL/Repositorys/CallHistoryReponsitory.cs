@@ -98,5 +98,13 @@ namespace ECS.DAL.Repositorys
                 "EXEC dbo.UpdateCallHistory @CallId, @EmployeeId, @PhoneNumber, @Status, @Notes",
                 parameters);
         }
+
+        public async Task<List<CallHistory>> GetCallHistoryByEmployeeId(Guid id)
+        {
+            return await _dbContext.callHistory
+                .FromSqlRaw("EXEC dbo.GetCallHistoryByEmployeeId @EmployeeId",
+                    new SqlParameter("@EmployeeId", id))
+                .ToListAsync();
+        }
     }
 }
