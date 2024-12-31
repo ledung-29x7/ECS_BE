@@ -38,11 +38,11 @@ namespace ECS.DAL.Repositorys
         public async Task AddEmployeeAsync(EmployeeService employeeService)
         {
             var employye_Param = new SqlParameter("@EmployeeId", employeeService.EmployeeId);
-            var service_Param = new SqlParameter("@ServiceId", employeeService.ServiceId);
+            var service_Param = new SqlParameter("@ProductServiceId", employeeService.ProductServiceId);
      
 
             await _ecsdbContext.Database.ExecuteSqlRawAsync(
-                "EXEC dbo.AddEmployeeService @EmployeeId, @ServiceId",
+                "EXEC dbo.AddEmployeeService @EmployeeId, @ProductServiceId",
                 employye_Param, service_Param);
 
         }
@@ -52,11 +52,11 @@ namespace ECS.DAL.Repositorys
         {
             var employeeService_Param = new SqlParameter("@EmployeeServiceId" , employeeService.EmployeeServiceId);
             var employye_Param = new SqlParameter("@EmployeeId", employeeService.EmployeeId);
-            var service_Param = new SqlParameter("@ServiceId", employeeService.ServiceId);
+            var service_Param = new SqlParameter("@ProductServiceId", employeeService.ProductServiceId);
 
 
             await _ecsdbContext.Database.ExecuteSqlRawAsync(
-                "EXEC dbo.UpdateEmployeeService @EmployeeServiceId , @EmployeeId, @ServiceId",
+                "EXEC dbo.UpdateEmployeeService @EmployeeServiceId , @EmployeeId, @ProductServiceId",
                employeeService_Param, employye_Param, service_Param);
         }
 
