@@ -11,6 +11,8 @@
         private int requiredEmployees;
         private bool? isActive;
         private DateTime? createdAt;
+        private string? employeeStatus;
+
 
         public int ProductServiceId { get => productServiceId; set => productServiceId = value; }
         public int ServiceId { get => serviceId; set => serviceId = value; }
@@ -21,5 +23,6 @@
         public int RequiredEmployees { get => requiredEmployees; set => requiredEmployees = value; }
         public bool? IsActive { get => isActive; set => isActive = value; }
         public DateTime? CreatedAt { get => createdAt; set => createdAt = value; }
+        public string? EmployeeStatus { get => employeeStatus; set => employeeStatus = value; }
     }
 }
