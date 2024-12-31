@@ -76,26 +76,7 @@ namespace ECS.Areas.Client.Controllers
             await _productReponsitory.UpdateProductAsync(product);
             return Ok("Update Success");
         }
-        // POST: api/Product
         [HttpPost]
-        //public async Task<IActionResult> Create([FromForm] CreateProductRequest request)
-        //{
-        //    var images = new List<ImageTable>();
-
-        //    foreach (var imageFile in request.ImageFiles)
-        //    {
-        //        using (var memoryStream = new MemoryStream())
-        //        {
-        //            await imageFile.CopyToAsync(memoryStream);
-        //            string imageBase64 = Convert.ToBase64String(memoryStream.ToArray());
-        //            images.Add(new ImageTable { ImageBase64 = imageBase64 });
-        //        }
-        //    }
-        //    var product = _mapper.Map<Product>(request);
-        //    await _productReponsitory.AddProductWithImageAsync(product, images);
-
-        //    return Ok(new { Message = "Product and images added successfully" });
-        //}
         public async Task<IActionResult> AddProduct([FromForm] CreateProductRequest request, [FromForm] string productServicesJson)
         {
             if (!ModelState.IsValid)
@@ -136,6 +117,40 @@ namespace ECS.Areas.Client.Controllers
                 return NotFound();
             }
 
+            var response = new
+            {
+                Products = products,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            };
+
+            return Ok(response);
+        }
+        [HttpGet("clients/{clientId}")]
+        public async Task<IActionResult> GetProductsByClientIdWithSales(
+    Guid clientId,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] string searchTerm = null,
+    [FromQuery] bool? isActive = null,
+    [FromQuery] DateTime? startDate = null,
+    [FromQuery] DateTime? endDate = null)
+        {
+            // Gọi repository để lấy dữ liệu
+            var (products, totalRecords, totalPages) = await _productReponsitory.GetProductsByClientIdWithSalesAsync(
+                clientId,
+                pageNumber,
+                searchTerm,
+                isActive,
+                startDate,
+                endDate);
+
+            // Kiểm tra nếu không có sản phẩm nào được tìm thấy
+            if (products == null || !products.Any())
+            {
+                return NotFound(new { Message = "No products found for the given criteria." });
+            }
+
+            // Tạo phản hồi dưới dạng JSON
             var response = new
             {
                 Products = products,

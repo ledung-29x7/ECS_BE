@@ -10,5 +10,7 @@ namespace ECS.DAL.Interfaces
         Task DeleteCallHistory (int id);
         Task UpdateCallHistory (CallHistory callHistory);
 
+        //Task<List<CallHistory>> GetCallHistoryByEmployeeId(Guid id);
+
     }
 }

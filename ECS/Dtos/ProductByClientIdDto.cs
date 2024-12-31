@@ -2,7 +2,7 @@
 
 namespace ECS.Dtos
 {
-    public class ProductDto
+    public class ProductByClientIdDto
     {
         public Guid ProductId { get; set; }
         public Guid ClientId { get; set; }
@@ -12,8 +12,12 @@ namespace ECS.Dtos
         public int? InitialQuantity { get; set; }
         public string? Description { get; set; }
         public bool? IsActive { get; set; }
-        public int? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public int? TotalSold { get; set; }            
+        public decimal? TotalRevenue { get; set; }    
+        public int? StockAvailable { get; set; }      
+        //public string? StockStatus { get; set; }   
+        public string? StatusName { get; set; }       
         public List<ImageTable>? Images { get; set; } = new List<ImageTable>();
     }
 }

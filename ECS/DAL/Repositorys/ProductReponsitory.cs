@@ -426,5 +426,76 @@ namespace ECS.DAL.Repositorys
             // Trả về kết quả
             return (productDictionary.Values, totalRecords, totalPages);
         }
+
+        public async Task<(IEnumerable<ProductByClientIdDto> Products, int TotalRecords, int TotalPages)> GetProductsByClientIdWithSalesAsync(Guid clientId, int pageNumber = 1, string searchTerm = null, bool? isActive = null, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var productDictionary = new Dictionary<Guid, ProductByClientIdDto>();
+
+            // Tạo các tham số cho stored procedure
+            var clientIdParam = new SqlParameter("@ClientId", clientId);
+            var pageNumberParam = new SqlParameter("@PageNumber", pageNumber);
+            var searchTermParam = new SqlParameter("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+            var isActiveParam = new SqlParameter("@IsActive", isActive.HasValue ? (object)isActive.Value : DBNull.Value);
+            var startDateParam = new SqlParameter("@StartDate", startDate.HasValue ? (object)startDate.Value : DBNull.Value);
+            var endDateParam = new SqlParameter("@EndDate", endDate.HasValue ? (object)endDate.Value : DBNull.Value);
+
+            // Gọi stored procedure
+            var results = await _context.Set<RawProductResultByClientIdDto>()
+                .FromSqlRaw(
+                    "EXEC [dbo].[GetProductsWithSalesByClientId] @ClientId, @PageNumber, @SearchTerm, @IsActive, @StartDate, @EndDate",
+                    clientIdParam,
+                    pageNumberParam,
+                    searchTermParam,
+                    isActiveParam,
+                    startDateParam,
+                    endDateParam
+                )
+                .ToListAsync();
+
+            // Tổng số bản ghi và tổng số trang
+            int totalRecords = results.FirstOrDefault()?.TotalRecords ?? 0;
+            int totalPages = results.FirstOrDefault()?.TotalPages ?? 0;
+
+            // Xử lý kết quả để tạo danh sách ProductDto
+            foreach (var result in results)
+            {
+                if (!productDictionary.TryGetValue(result.ProductId, out var product))
+                {
+                    product = new ProductByClientIdDto
+                    {
+                        ProductId = result.ProductId,
+                        ClientId = result.ClientId,
+                        CategoryId = result.CategoryId,
+                        ProductName = result.ProductName,
+                        Price = result.Price,
+                        InitialQuantity = result.InitialQuantity,
+                        Description = result.Description,
+                        IsActive = result.IsActive,
+                        CreatedAt = result.CreatedAt,
+                        TotalSold = result.TotalSold,
+                        TotalRevenue = result.TotalRevenue,
+                        StockAvailable = result.StockAvailable,
+                        //StockStatus = result.StockStatus,
+                        StatusName = result.StatusName, // Lấy từ bảng ProductStatus
+                        Images = new List<ImageTable>()
+                    };
+
+                    productDictionary.Add(result.ProductId, product);
+                }
+
+                // Thêm hình ảnh nếu có
+                if (result.ImageId.HasValue && !string.IsNullOrEmpty(result.ImageBase64))
+                {
+                    product.Images.Add(new ImageTable
+                    {
+                        ImageId = result.ImageId.Value,
+                        ImageBase64 = result.ImageBase64
+                    });
+                }
+            }
+
+            // Trả về kết quả
+            return (productDictionary.Values, totalRecords, totalPages);
+        }
     }
 }

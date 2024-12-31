@@ -22,11 +22,19 @@ namespace ECS.DAL.Interfaces
         Task<Client> GetClientByProductId(Guid productId);
         Task AddProduct(CreateProductRequest request, string productServicesJson);
        Task<(IEnumerable<ProductDto> Products, int TotalRecords, int TotalPages)> GetAllProductsAsync(
-    int pageNumber,
-    string searchTerm = null,
-    decimal? minPrice = null,
-    decimal? maxPrice = null,
-    bool? isActive = null);
+            int pageNumber,
+            string searchTerm = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            bool? isActive = null);
 
+        Task<(IEnumerable<ProductByClientIdDto> Products, int TotalRecords, int TotalPages)> GetProductsByClientIdWithSalesAsync(
+            Guid clientId,
+            int pageNumber = 1,
+            string searchTerm = null,
+            bool? isActive = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null);
     }
+
 }
