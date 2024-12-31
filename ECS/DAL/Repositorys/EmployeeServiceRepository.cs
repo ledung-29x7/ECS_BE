@@ -39,7 +39,6 @@ namespace ECS.DAL.Repositorys
         {
             var employye_Param = new SqlParameter("@EmployeeId", employeeService.EmployeeId);
             var service_Param = new SqlParameter("@ProductServiceId", employeeService.ProductServiceId);
-     
 
             await _ecsdbContext.Database.ExecuteSqlRawAsync(
                 "EXEC dbo.AddEmployeeService @EmployeeId, @ProductServiceId",

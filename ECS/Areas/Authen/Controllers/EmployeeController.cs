@@ -23,10 +23,10 @@ namespace ECS.Areas.Authen.Controllers
         public async Task<IActionResult> GetEmployeeWorkList(Guid employeeId)
         {
             var workList = await _employeeRepository.GetEmployeeWorkListByIdAsync(employeeId);
-            if (workList == null || !workList.Any())
-            {
-                return NotFound("No worklist found for this employee.");
-            }
+            //if (workList == null || !workList.Any())
+            //{
+            //    return NotFound("No worklist found for this employee.");
+            //}
             return Ok(workList);
         }
 
