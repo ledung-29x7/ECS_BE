@@ -26,6 +26,8 @@ namespace ECS
             modelBuilder.Entity<RawProductResult>().HasNoKey();
             modelBuilder.Entity<GetOrderDetalByOrderId>().HasNoKey();
             modelBuilder.Entity<RawProductResultByClientIdDto>().HasNoKey();
+            modelBuilder.Entity<ProductServiceDto>().HasNoKey();
+
 
         }
 
@@ -53,5 +55,6 @@ namespace ECS
         public DbSet<Contact> contacts { get; set; }
         public DbSet<GetOrderDetalByOrderId> getOrderDetalByOrderIds { get; set; }
         public DbSet<RawProductResultByClientIdDto> rawProductResultByClientIdDtos { get; set; }
+        public DbSet<ProductServiceDto> productServiceDtos { get; set; }
     }
 }

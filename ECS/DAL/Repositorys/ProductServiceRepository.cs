@@ -1,5 +1,6 @@
 ﻿using ECS.Areas.Client.Models;
 using ECS.DAL.Interfaces;
+using ECS.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,10 +61,10 @@ namespace ECS.DAL.Repositorys
 
 
 
-        public async Task<List<ProductService>> GetProductServiceByClientId(Guid clientId)
+        public async Task<List<ProductServiceDto>> GetProductServiceByClientId(Guid clientId)
         {
             var ClientId_Param = new SqlParameter("@ClientId", clientId);
-            var productServices = await _context.productServices
+            var productServices = await _context.productServiceDtos
                                        .FromSqlRaw("EXECUTE dbo.GetProductServiceByClientId @ClientId", ClientId_Param)
                                        .ToListAsync();
             return productServices;
