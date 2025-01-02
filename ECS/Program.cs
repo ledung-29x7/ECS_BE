@@ -40,6 +40,7 @@ builder.Services.AddScoped<IEmployeeProductCategoryRepository, EmployeeProductCa
 builder.Services.AddScoped<ICallStatusRepository, CallStatusRepository>();
 builder.Services.AddScoped<IProductStatusRepository, ProductStatusRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IOrderStatusRepository, OrderStatusRepository>();
 builder.Services.AddHostedService<UpdateIsActiveBackgroundService>();
 
 
