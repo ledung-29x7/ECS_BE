@@ -178,6 +178,14 @@ namespace ECS.DAL.Repositorys
                      new SqlParameter("@EmployeeId", id))
                  .ToListAsync();
         }
+
+        public async Task UpdateOrderStatus(int orderId, int status)
+        {
+            var orderId_param = new SqlParameter("@OrderId", orderId);
+            var statusId_param = new SqlParameter("@OrderStatus", status);
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC dbo.UpdateOrderStatus @OrderId, @OrderStatus", orderId_param, statusId_param);
+        }
     }
 }
 

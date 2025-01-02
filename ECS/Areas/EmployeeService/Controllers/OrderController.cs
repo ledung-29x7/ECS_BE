@@ -165,6 +165,20 @@ namespace ECS.Areas.EmployeeService.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPut("orderstatus/{id}")]
+        public async Task<IActionResult> UpdateOrderStatus(int id, int orderid)
+        {
+            try
+            {
+                await _orderRepository.UpdateOrderStatus(id, orderid);
+                return Ok("Order updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
 
