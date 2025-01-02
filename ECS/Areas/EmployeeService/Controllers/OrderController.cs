@@ -166,12 +166,12 @@ namespace ECS.Areas.EmployeeService.Controllers
             }
         }
 
-        [HttpPut("orderstatus/{id}")]
-        public async Task<IActionResult> UpdateOrderStatus(int id, int orderid)
+        [HttpPut("orderstatus/{orderid}")]
+        public async Task<IActionResult> UpdateOrderStatus(int orderid, int statusid)
         {
             try
             {
-                await _orderRepository.UpdateOrderStatus(id, orderid);
+                await _orderRepository.UpdateOrderStatus(orderid, statusid);
                 return Ok("Order updated successfully.");
             }
             catch (Exception ex)
